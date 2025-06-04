@@ -32,9 +32,9 @@ pub enum TestRunMode {
 #[reflect(Component, Deserialize, Serialize)]
 pub struct TestComponent {
     /// Integer value for testing
-    pub value:   i32,
+    pub value: i32,
     /// String name for testing
-    pub name:    String,
+    pub name: String,
     /// Boolean flag for testing
     pub enabled: bool,
 }
@@ -119,7 +119,7 @@ pub fn allocate_test_port() -> u16 {
 
 /// Test app handle that ensures cleanup
 pub struct TestApp {
-    port:   u16,
+    port: u16,
     handle: Option<tokio::task::JoinHandle<()>>,
 }
 
@@ -221,8 +221,8 @@ fn setup_test_world(mut commands: Commands) {
     commands.spawn((
         Name::new("Entity1"),
         TestComponent {
-            value:   100,
-            name:    "entity1".into(),
+            value: 100,
+            name: "entity1".into(),
             enabled: true,
         },
     ));
@@ -230,8 +230,8 @@ fn setup_test_world(mut commands: Commands) {
     commands.spawn((
         Name::new("Entity2"),
         TestComponent {
-            value:   200,
-            name:    "entity2".into(),
+            value: 200,
+            name: "entity2".into(),
             enabled: false,
         },
     ));
@@ -247,8 +247,8 @@ fn setup_test_world(mut commands: Commands) {
     commands.spawn((
         Name::new("Entity4"),
         TestComponent {
-            value:   300,
-            name:    "entity4".into(),
+            value: 300,
+            name: "entity4".into(),
             enabled: true,
         },
         SecondaryComponent {
