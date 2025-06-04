@@ -27,7 +27,7 @@ impl TestWorkspace {
     fn new_workspace(members: &[&str]) -> Result<Self> {
         let temp_dir = tempfile::tempdir()?;
         let root = temp_dir.path().to_path_buf();
-        
+
         // Create workspace Cargo.toml
         let workspace_toml = format!(
             r#"[workspace]
@@ -36,7 +36,7 @@ members = {:?}
             members
         );
         std::fs::write(root.join("Cargo.toml"), workspace_toml)?;
-        
+
         // Create member crates
         for member in members {
             let member_path = root.join(member);
@@ -52,39 +52,35 @@ version = "0.1.0"
                 ),
             )?;
             std::fs::create_dir_all(member_path.join("src"))?;
-            std::fs::write(
-                member_path.join("src").join("main.rs"),
-                "fn main() {}",
-            )?;
+            std::fs::write(member_path.join("src").join("main.rs"), "fn main() {}")?;
         }
-        
+
         // Create target directory and dummy binary
         Self::create_dummy_binary(&root, "test_bevy_app")?;
-        
+
         Ok(TestWorkspace {
             _temp_dir: temp_dir,
             root,
         })
     }
-    
-    
+
     /// Create a dummy binary in target/debug
     fn create_dummy_binary(root: &std::path::Path, name: &str) -> Result<()> {
         let target_debug = root.join("target").join("debug");
         std::fs::create_dir_all(&target_debug)?;
-        
+
         let binary_path = target_debug.join(name);
         std::fs::write(&binary_path, "#!/bin/sh\necho 'dummy bevy app'")?;
-        
+
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
             std::fs::set_permissions(&binary_path, std::fs::Permissions::from_mode(0o755))?;
         }
-        
+
         Ok(())
     }
-    
+
     fn root(&self) -> &std::path::Path {
         &self.root
     }
@@ -104,7 +100,10 @@ async fn test_binary_discovery_from_workspace_subdirectory() -> Result<()> {
     let workspace = TestWorkspace::new_workspace(&["crate-a", "crate-b"])?;
     let workspace_root = workspace.root();
     let test_subdir = workspace_root.join("crate-a");
-    let binary_path = workspace_root.join("target").join("debug").join("test_bevy_app");
+    let binary_path = workspace_root
+        .join("target")
+        .join("debug")
+        .join("test_bevy_app");
 
     // Change to the subdirectory
     env::set_current_dir(&test_subdir)?;
@@ -152,112 +151,6 @@ async fn test_binary_discovery_from_workspace_subdirectory() -> Result<()> {
     Ok(())
 }
 
-/// Helper function to find the workspace root
-fn find_workspace_root(start_path: &std::path::Path) -> Result<PathBuf> {
-    let mut current = start_path;
-    loop {
-        let cargo_toml = current.join("Cargo.toml");
-        if cargo_toml.exists() {
-            // Check if this is a workspace by reading the file
-            let content = std::fs::read_to_string(&cargo_toml)?;
-            if content.contains("[workspace]") {
-                return Ok(current.to_path_buf());
-            }
-        }
-
-        match current.parent() {
-            Some(parent) => current = parent,
-            None => {
-                // If we can't find a workspace, assume the start path is the workspace root
-                return Ok(start_path.to_path_buf());
-            }
-        }
-    }
-}
-
-/// Find any workspace member directory (a subdirectory with Cargo.toml)
-fn find_workspace_member_dir(workspace_root: &std::path::Path) -> Result<PathBuf> {
-    // First, look for nested crates (like crates/*/Cargo.toml)
-    for entry in std::fs::read_dir(workspace_root)? {
-        let entry = entry?;
-        if entry.file_type()?.is_dir() {
-            let dir_path = entry.path();
-            // Check if this directory contains subdirectories with Cargo.toml
-            if let Ok(subdirs) = std::fs::read_dir(&dir_path) {
-                for subentry in subdirs.flatten() {
-                    if subentry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) {
-                        let subdir_path = subentry.path();
-                        if subdir_path.join("Cargo.toml").exists() {
-                            return Ok(subdir_path);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Second, look for any direct subdirectory with Cargo.toml
-    for entry in std::fs::read_dir(workspace_root)? {
-        let entry = entry?;
-        if entry.file_type()?.is_dir() {
-            let dir_path = entry.path();
-            if dir_path.join("Cargo.toml").exists() {
-                return Ok(dir_path);
-            }
-        }
-    }
-
-    // Fallback: create a temporary test directory
-    let temp_dir = workspace_root.join("src"); // src directory should exist in most Rust projects
-    if temp_dir.exists() {
-        return Ok(temp_dir);
-    }
-
-    // Last resort: use the workspace root itself
-    Ok(workspace_root.to_path_buf())
-}
-
-/// Find the workspace binary (any binary in target/debug or target/release)
-fn find_workspace_binary(workspace_root: &std::path::Path) -> Result<PathBuf> {
-    // Check debug directory first
-    let debug_dir = workspace_root.join("target").join("debug");
-    if let Ok(entries) = std::fs::read_dir(&debug_dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_file() {
-                if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                    // Skip files with extensions (likely not binaries on Unix)
-                    if !name.contains('.')
-                        && path.metadata().map(|m| m.len() > 1000).unwrap_or(false)
-                    {
-                        return Ok(path);
-                    }
-                }
-            }
-        }
-    }
-
-    // Check release directory as fallback
-    let release_dir = workspace_root.join("target").join("release");
-    if let Ok(entries) = std::fs::read_dir(&release_dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_file() {
-                if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                    if !name.contains('.')
-                        && path.metadata().map(|m| m.len() > 1000).unwrap_or(false)
-                    {
-                        return Ok(path);
-                    }
-                }
-            }
-        }
-    }
-
-    // Last resort: assume the binary we're testing exists
-    Ok(workspace_root.join("target").join("debug").join("brp"))
-}
-
 /// Test binary discovery from workspace root
 #[tokio::test]
 async fn test_binary_discovery_from_workspace_root() -> Result<()> {
@@ -267,7 +160,10 @@ async fn test_binary_discovery_from_workspace_root() -> Result<()> {
     // Create a test workspace
     let workspace = TestWorkspace::new_workspace(&["member-a"])?;
     let workspace_root = workspace.root();
-    let binary_path = workspace_root.join("target").join("debug").join("test_bevy_app");
+    let binary_path = workspace_root
+        .join("target")
+        .join("debug")
+        .join("test_bevy_app");
 
     assert!(
         binary_path.exists(),
@@ -295,7 +191,7 @@ async fn test_binary_discovery_from_parent_directory() -> Result<()> {
     let temp_parent = tempfile::tempdir()?;
     let project_dir = temp_parent.path().join("my-bevy-project");
     std::fs::create_dir(&project_dir)?;
-    
+
     // Create a simple project structure
     std::fs::write(
         project_dir.join("Cargo.toml"),
@@ -304,7 +200,7 @@ name = "my-bevy-project"
 version = "0.1.0"
 "#,
     )?;
-    
+
     // Change to parent directory (outside any project)
     env::set_current_dir(temp_parent.path())?;
 
@@ -395,7 +291,10 @@ async fn test_specific_bug_scenario_simulation() -> Result<()> {
     let workspace = TestWorkspace::new_workspace(&["app-crate", "lib-crate"])?;
     let workspace_root = workspace.root();
     let test_subdir = workspace_root.join("app-crate");
-    let binary_path = workspace_root.join("target").join("debug").join("test_bevy_app");
+    let binary_path = workspace_root
+        .join("target")
+        .join("debug")
+        .join("test_bevy_app");
 
     // Change to the subdirectory
     env::set_current_dir(&test_subdir)?;
@@ -418,7 +317,6 @@ async fn test_specific_bug_scenario_simulation() -> Result<()> {
         "Correct absolute path should exist: {}",
         binary_path.display()
     );
-
 
     // Restore working directory
     env::set_current_dir(&original_cwd)?;
