@@ -4,7 +4,6 @@
 [![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](https://github.com/natepiano/bevy_brp_tool#license)
 [![Docs](https://docs.rs/bevy_brp_tool/badge.svg)](https://docs.rs/bevy_brp_tool)
 [![CI](https://github.com/natepiano/bevy_brp_tool/actions/workflows/ci.yml/badge.svg)](https://github.com/natepiano/bevy_brp_tool/actions/workflows/ci.yml)
-[![Downloads](https://img.shields.io/crates/d/bevy_brp_tool.svg)](https://crates.io/crates/bevy_brp_tool)
 
 Remote control your Bevy apps using the Bevy Remote Protocol (BRP).
 Make it easy for agentic coders such as Claude Code to interact with your Bevy apps while developing and testing.
