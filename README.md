@@ -1,20 +1,20 @@
 # bevy_brp_tool
 
 [![Crates.io](https://img.shields.io/crates/v/bevy_brp_tool.svg)](https://crates.io/crates/bevy_brp_tool)
-[![Documentation](https://docs.rs/bevy_brp_tool/badge.svg)](https://docs.rs/bevy_brp_tool)
-[![License](https://img.shields.io/crates/l/bevy_brp_tool.svg)](https://github.com/natepiano/bevy_brp_tool#license)
+[![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](https://github.com/natepiano/bevy_brp_tool#license)
+[![Docs](https://docs.rs/bevy_brp_tool/badge.svg)](https://docs.rs/bevy_brp_tool)
+[![CI](https://github.com/natepiano/bevy_brp_tool/actions/workflows/ci.yml/badge.svg)](https://github.com/natepiano/bevy_brp_tool/actions/workflows/ci.yml)
 [![Downloads](https://img.shields.io/crates/d/bevy_brp_tool.svg)](https://crates.io/crates/bevy_brp_tool)
-[![CI](https://github.com/natepiano/bevy_brp_tool/workflows/CI/badge.svg)](https://github.com/natepiano/bevy_brp_tool/actions)
-[![Rust Version](https://img.shields.io/badge/rust-2024%20edition-blue.svg)](https://blog.rust-lang.org/2024/01/01/edition-2024.html)
 
-Remote control your Bevy apps via HTTP/JSON-RPC using the Bevy Remote Protocol (BRP).
+Remote control your Bevy apps using the Bevy Remote Protocol (BRP).
+Make it easy for agentic coders such as Claude Code to interact with your Bevy apps while developing and testing.
 
 This crate provides two distinct components:
 
-1. **Library**: A Bevy plugin (`BrpToolPlugin`) for adding remote control capabilities to your Bevy applications
-2. **CLI Tool**: A command-line tool (`brp`) for sending commands to Bevy apps
+1. **Library**: A Bevy plugin (`BrpToolPlugin`) for adding remote control capabilities to your Bevy applications - very Optional.
+2. **CLI Tool**: A command-line tool (`brp`) for sending commands to Bevy apps - either configured by you with the BRP, or using the `BrpToolPlugin` provided by this crate.
 
-## Library Usage (For Bevy App Developers)
+## Library Usage
 
 ### What the Plugin Does
 
@@ -23,7 +23,7 @@ The `BrpToolPlugin` is a lightweight plugin that:
 2. **Adds screenshot capability** - Provides a `brp_tool/screenshot` method for capturing screenshots
 3. **Adds shutdown capability** - Provides a `brp_tool/shutdown` method for graceful app termination
 
-That's it! The plugin code is minimal and adds very little overhead to your application.
+The plugin code is minimal and adds very little overhead to your application.
 
 ### Using the Plugin (Optional)
 
