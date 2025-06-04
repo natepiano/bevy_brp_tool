@@ -46,12 +46,16 @@ fn main() {
 
 ```rust
 use bevy::prelude::*;
-use bevy_remote::{RemotePlugin, RemoteSet};
+use bevy::remote::{
+    RemotePlugin,
+    http::RemoteHttpPlugin,
+};
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(RemotePlugin::default()) // Your own BRP setup
+        .add_plugins(RemotePlugin::default())
+        .add_plugins(RemoteHttpPlugin::default())
         .run();
 }
 ```
@@ -73,11 +77,13 @@ struct MyComponent { /* ... */ }
 app.register_type::<MyComponent>();
 ```
 
+A lot of boilerplate but there it is - maybe it will change one day. But once you've done this, MyComponent is ready to be used with BRP.
+
 ### Library API
 
 The library exposes only two public items:
-- `BrpToolPlugin` - The lightweight Bevy plugin (optional to use)
-- `DEFAULT_REMOTE_PORT` - The default port constant (15702, matches RemoteHttpPlugin)
+- `BrpToolPlugin` - The plugin configuring BRP on your behalf and adding a couple of useful methods
+- `DEFAULT_REMOTE_PORT` - The default port constant (15702, matches RemoteHttpPlugin) - convenience
 
 ## CLI Usage (For Testing and Debugging)
 
