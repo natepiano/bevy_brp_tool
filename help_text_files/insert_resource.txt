@@ -1,0 +1,26 @@
+Description: Insert or update a resource in the world
+
+Usage:
+  {{BIN_NAME}} insert-resource '<JSON_OBJECT>'
+  {{BIN_NAME}} --managed --commands 'insert_resource <JSON_OBJECT>'
+
+Arguments:
+  JSON_OBJECT - Object with resource type as key and data as value
+
+Examples:
+  # Insert a custom resource
+  {{BIN_NAME}} insert-resource '{
+    "my_game::resources::GameSettings": {
+      "difficulty": "hard",
+      "sound_volume": 0.8
+    }
+  }'
+
+Returns: Success confirmation or error message
+
+NOTES:
+  - If resource exists, it will be replaced
+  - Resource type must be registered in the app
+  - Only one resource per type can exist
+  - Custom resources need #[derive(Deserialize)] and #[reflect(Deserialize)]
+    (Bevy's built-in resources already have these)

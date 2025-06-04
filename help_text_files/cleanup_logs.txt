@@ -1,0 +1,42 @@
+Clean up inactive session log files from temp directory
+
+USAGE:
+  {{BIN_NAME}} --cleanup-logs
+  {{BIN_NAME}} -c
+
+BEHAVIOR:
+  - Scans temp directory for BRP session files
+  - Checks each session to see if process is still active
+  - Preserves files from active sessions
+  - Deletes only files from inactive/dead sessions
+  - Shows summary of preserved and cleaned files
+
+TEMP DIRECTORY:
+  {{TEMP_DIR}}
+
+EXAMPLE:
+  $ {{BIN_NAME}} --cleanup-logs
+  Found active session on port 15702 (PID: 12345)
+  Preserving active session info: {{BIN_NAME}}_session_port_15702.json
+  Preserving active log file: {{BIN_NAME}}_session_1705314523456.log
+  Removed inactive log file: {{BIN_NAME}}_session_1705314567890.log
+  Removed inactive session info: {{BIN_NAME}}_session_port_15703.json
+  
+  Cleanup complete:
+    - 2 inactive files removed
+    - 2 active session files preserved
+
+FILES CLEANED:
+  - {{BIN_NAME}}_session_*.log (session output logs from dead processes)
+  - {{BIN_NAME}}_session_port_*.json (session metadata from dead processes)
+
+NOTES:
+  - Deletion behavior varies by platform:
+    • macOS/Linux: Open files can be deleted (space freed when closed)
+    • Windows: Files in use are locked and deletion will fail
+  - Error messages show which files couldn't be removed
+
+AUTOMATIC OS CLEANUP:
+  - macOS: Removes files older than 3 days
+  - Linux: Removes files older than 10 days (systemd default)
+  - Windows: No automatic cleanup unless Storage Sense is enabled

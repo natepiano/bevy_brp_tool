@@ -1,0 +1,48 @@
+========================================
+COMMAND: shutdown (brp_tool/shutdown)
+========================================
+
+DESCRIPTION:
+Gracefully shutdown the Bevy application
+
+USAGE:
+  {{BIN_NAME}} shutdown
+  {{BIN_NAME}} --managed --commands 'shutdown'
+
+BEHAVIOR:
+1. Sends shutdown signal to the app
+2. App performs cleanup operations
+3. All pending operations are completed
+4. Connection is closed
+5. App process exits
+
+RETURNS:
+Confirmation message before connection closes
+
+EXAMPLE OUTPUT:
+{"status": "Shutdown initiated"}
+
+NOTES:
+- Ensures clean shutdown with proper cleanup
+- Waits for pending operations to complete
+- Connection will be closed after response
+- In managed mode, this ends the session
+- Use at end of command sequences
+
+EXAMPLES:
+# Simple shutdown
+$ {{BIN_NAME}} shutdown
+
+# Take screenshot then shutdown
+$ {{BIN_NAME}} --managed --commands 'screenshot /tmp/final.png,wait:1,shutdown'
+
+# Complete workflow with shutdown
+$ {{BIN_NAME}} --managed --commands 'ready,spawn {"bevy_core::name::Name": "Test"},wait:2,screenshot /tmp/test.png,wait:1,shutdown'
+
+WORKFLOW TIPS:
+- Always use shutdown at end of automated sequences
+- Add wait after screenshots before shutdown
+- Ensures all async operations complete
+- Prevents orphaned processes in scripts
+
+See also: ready, wait

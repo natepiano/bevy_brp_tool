@@ -1,0 +1,69 @@
+BRP Tool Instructions for Coding Agents
+
+KEY INSIGHT: Non-Blocking Execution Modes
+=========================================
+{{BIN_NAME}} provides two modes designed specifically for agents to test Bevy apps WITHOUT blocking:
+
+1. DETACHED MODE - Start app in background, issue commands freely
+   {{BIN_NAME}} --detached        # Starts app, returns immediately
+   {{BIN_NAME}} list              # Run any command directly while app runs
+   {{BIN_NAME}} query Transform   # Another command
+   {{BIN_NAME}} shutdown          # Stop when done
+
+   Perfect for: Interactive testing, real-time monitoring, multiple command sequences
+
+2. MANAGED COMMANDS - Execute command sequence automatically
+   {{BIN_NAME}} --managed-commands 'ready,list,spawn {...},screenshot test.png,shutdown'
+
+   Automatically: Starts app → Runs all commands → Exits
+   Perfect for: Quick tests, CI/CD, automated validation
+
+Without these modes, agents would be blocked waiting for the app to exit!
+
+COMPONENT REQUIREMENTS
+=====================
+For details on configuring Bevy apps and components to work with BRP, run:
+{{BIN_NAME}} --brp
+
+This shows how to add required plugins and properly derive components/resources.
+
+AVAILABLE COMMANDS
+==================
+For a complete list of all available commands, run:
+{{BIN_NAME}} --list-commands
+
+For detailed help on any specific command:
+{{BIN_NAME}} --help-for <command>
+
+EXAMPLES
+========
+# Detached workflow - test without blocking
+{{BIN_NAME}} --detached
+{{BIN_NAME}} ready
+{{BIN_NAME}} spawn '{"bevy_transform::components::transform::Transform": {"translation": [2.0, 1.0, 0.0], "rotation": [0.0, 0.0, 0.0, 1.0], "scale": [1.0, 1.0, 1.0]}}'
+{{BIN_NAME}} screenshot debug.png
+{{BIN_NAME}} shutdown
+
+# Managed workflow - all-in-one test
+{{BIN_NAME}} --managed-commands 'ready,screenshot before.png,spawn {...},screenshot after.png'
+
+REAL-TIME MONITORING (Detached only)
+====================================
+Watch commands stream data continuously. Use background execution to monitor while keeping shell access:
+
+# get+watch: Stream component value changes
+nohup {{BIN_NAME}} get+watch <entity> <component> > watch.log 2>&1 &
+tail -f watch.log  # See live updates as component data changes
+
+# list+watch: Stream component additions/removals on entity
+nohup {{BIN_NAME}} list+watch <entity> > components.log 2>&1 &
+tail -f components.log  # See when components are added/removed
+
+# Stop background watch processes
+ps aux | grep "{{BIN_NAME}}.*watch" | grep -v grep | awk '{print $2}' | xargs kill
+
+TROUBLESHOOTING
+==============
+1. Component not found: Check derives and registration
+2. Get/mutate fails: Verify entity has component (list-entities)
+3. Wrong results: Use exact component names from 'list' output

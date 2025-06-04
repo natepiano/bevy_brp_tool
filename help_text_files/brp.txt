@@ -1,0 +1,77 @@
+========================================
+BEVY REMOTE PROTOCOL (BRP) CONFIGURATION
+========================================
+
+Configure your Bevy app to work with BRP and the {{BIN_NAME}} command-line tool.
+
+BASIC SETUP
+===========
+
+Add BRP plugins to your Bevy app:
+
+    use bevy::prelude::*;
+    use bevy_remote::{RemotePlugin, http::RemoteHttpPlugin};
+
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_plugins(RemotePlugin::default())      // Core BRP functionality  
+        .add_plugins(RemoteHttpPlugin::default())  // HTTP transport (port 15702)
+        .register_type::<MyComponent>()            // Register your types
+        .run();
+
+Custom port configuration:
+    RemoteHttpPlugin::default().with_port(8080)
+
+COMPONENT/RESOURCE REQUIREMENTS
+===============================
+
+All types must have these derives and be registered:
+
+    #[derive(Component, Reflect, Serialize, Deserialize)]  // or Resource
+    #[reflect(Component, Serialize, Deserialize)]          // or Resource
+    struct MyType {
+        pub value: f32,
+    }
+
+    app.register_type::<MyType>();
+
+BRP TOOL PLUGIN (OPTIONAL)
+===========================
+
+Alternatively, use BrpToolPlugin which includes BRP setup + screenshot/shutdown methods:
+
+    use bevy_brp_tool::BrpToolPlugin;
+
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_plugins(BrpToolPlugin::default())      // Port 15702
+        // .add_plugins(BrpToolPlugin::with_port(8080))  // Custom port
+        .register_type::<MyComponent>()
+        .run();
+
+Debug-only inclusion:
+    #[cfg(debug_assertions)]
+    app.add_plugins(BrpToolPlugin::default());
+
+TESTING YOUR SETUP
+==================
+
+1. Start your app
+2. Test connection: {{BIN_NAME}} list
+3. Query entities: {{BIN_NAME}} query bevy_transform::components::transform::Transform  
+4. Get data: {{BIN_NAME}} get 12345 bevy_transform::components::transform::Transform
+
+COMMON ISSUES
+=============
+
+• "Component type not found": Missing derives or register_type()
+• "Connection refused": Missing plugins or wrong port  
+• Empty results: Use exact type names from '{{BIN_NAME}} list'
+
+SECURITY NOTES
+==============
+
+BRP exposes app internals over HTTP. In production:
+• Bind to localhost only (default)
+• Disable in release builds if not needed
+• Use #[cfg(debug_assertions)] for development-only access

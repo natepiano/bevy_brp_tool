@@ -1,0 +1,34 @@
+Description: Get component data from a specific entity
+
+Usage:
+  {{BIN_NAME}} get <ENTITY_ID> <COMPONENT>
+  {{BIN_NAME}} --managed --commands 'get <ENTITY_ID> <COMPONENT>'
+
+Arguments:
+  ENTITY_ID - The numeric entity ID (from query results)
+  COMPONENT - Fully qualified component type name
+
+Examples:
+  # Get Transform component from entity 12345
+  {{BIN_NAME}} --managed --commands 'get 12345 bevy_transform::components::transform::Transform'
+
+Returns: JSON object with the component data
+
+Example output:
+  {
+    "translation": [0.0, 5.0, 0.0],
+    "rotation": [0.0, 0.0, 0.0, 1.0],
+    "scale": [1.0, 1.0, 1.0]
+  }
+
+KNOWN LIMITATIONS:
+  - Entity IDs must be u32 (max 4,294,967,295)
+  - Very large entity IDs may cause parsing errors in the CLI
+  - Component name must be fully qualified
+  - Custom components need #[derive(Serialize)] and #[reflect(Serialize)]
+    (Bevy's built-in components already have these)
+
+COMMON ERRORS:
+  ❌ get 12345 Transform
+     Error: Component 'Transform' not found
+  ✅ get 12345 bevy_transform::components::transform::Transform

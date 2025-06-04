@@ -1,0 +1,48 @@
+========================================
+COMMAND: ready
+========================================
+
+DESCRIPTION:
+Check if the Bevy app is ready to receive BRP commands
+
+USAGE:
+  {{BIN_NAME}} ready
+  {{BIN_NAME}} --managed --commands 'ready'
+
+RETURNS:
+JSON object with readiness status
+
+EXAMPLE OUTPUT:
+{
+  "ready": true,
+  "message": "App is ready and responding to BRP commands"
+}
+
+RESPONSE FIELDS:
+- ready: Boolean indicating if app is responding to BRP commands
+- message: Human-readable status message
+
+PURPOSE:
+- Verify app is responsive to BRP commands before automation
+- Ensure app has started and BRP server is running
+- Check connectivity before running command sequences
+- Works with any BRP-enabled Bevy app
+
+NOTES:
+- Uses standard BRP commands to check responsiveness
+- Works with any Bevy app that has BRP enabled
+- Does not require BrpToolPlugin
+- Polls using lightweight BRP commands (bevy/list)
+
+WORKFLOW EXAMPLE:
+# Ensure app is ready before running commands
+$ {{BIN_NAME}} --managed --commands 'ready,wait:1,screenshot /tmp/test.png'
+
+# Check readiness in automation scripts
+$ {{BIN_NAME}} ready | jq '.ready'
+true
+
+# Use with any BRP-enabled Bevy app
+$ {{BIN_NAME}} --port 15703 ready
+
+See also: methods, list

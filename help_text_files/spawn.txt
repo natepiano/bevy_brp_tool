@@ -1,0 +1,43 @@
+Description: Spawn a new entity with specified components
+
+Usage:
+  {{BIN_NAME}} spawn '<JSON_OBJECT>'
+  {{BIN_NAME}} --managed --commands 'spawn <JSON_OBJECT>'
+
+Arguments:
+  JSON_OBJECT - Object where keys are component types and values are component data
+
+Examples:
+  # Spawn entity with Transform and Name
+  {{BIN_NAME}} spawn '{
+    "bevy_transform::components::transform::Transform": {
+      "translation": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0, 1.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    "bevy_ecs::name::Name": "MyEntity"
+  }'
+
+Shell escaping for complex JSON:
+  # Using heredoc for complex JSON
+  {{BIN_NAME}} spawn "$(cat <<'EOF'
+  {
+    "bevy_transform::components::transform::Transform": {
+      "translation": [10.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0, 1.0],
+      "scale": [2.0, 2.0, 2.0]
+    }
+  }
+  EOF
+  )"
+
+Returns: JSON object with the new entity ID
+
+Example output:
+  {"entity": 24680}
+
+NOTES:
+  - Component names must be fully qualified
+  - JSON must be properly escaped in shell
+  - Custom components need #[derive(Deserialize)] and #[reflect(Deserialize)]
+    (Bevy's built-in components already have these)

@@ -1,0 +1,25 @@
+Show information about the current detached session
+
+USAGE:
+  {{BIN_NAME}} --info
+
+OUTPUT:
+  Shows JSON with session details:
+  - pid: Process ID of the detached app
+  - port: Port the app is listening on
+  - log_file: Path to the session log file
+  - start_time: When the session was started
+
+EXAMPLE:
+  $ {{BIN_NAME}} --info
+  {
+    "pid": 12345,
+    "port": 15702,
+    "log_file": "{{TEMP_DIR}}brp_session_15702.log",
+    "start_time": "2024-01-15T10:30:00Z"
+  }
+
+NOTES:
+  - Returns error if no detached session is found
+  - Only shows info for sessions on the specified port
+  - Use with --port to check specific ports

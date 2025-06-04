@@ -1,0 +1,35 @@
+========================================
+COMMAND: list_resources (bevy/list_resources)
+========================================
+
+DESCRIPTION:
+List all resources registered in the Bevy world
+
+USAGE:
+  {{BIN_NAME}} list_resources
+  {{BIN_NAME}} list-resources
+  {{BIN_NAME}} --managed --commands 'list_resources'
+
+RETURNS:
+JSON array of resource type names
+
+EXAMPLE OUTPUT:
+[
+  "bevy_time::time::Time",
+  "bevy_asset::assets::Assets<bevy_render::mesh::mesh::Mesh>",
+  "bevy_window::window::Windows",
+  "hana::camera::camera_config::CameraConfig"
+]
+
+NOTES:
+- Resources are global singletons in Bevy
+- Use these type names with get_resource command
+- The list shows all resources currently registered in the ECS world
+- Some resources may be complex generic types
+
+WORKFLOW EXAMPLE:
+# Discover and inspect resources
+$ {{BIN_NAME}} list_resources
+$ {{BIN_NAME}} get_resource bevy_time::time::Time
+
+See also: get_resource, mutate_resource, insert_resource, remove_resource

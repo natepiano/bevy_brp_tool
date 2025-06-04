@@ -1,0 +1,42 @@
+App binary to run in managed or detached mode
+
+USAGE:
+  {{BIN_NAME}} --app <APP> --detached
+  {{BIN_NAME}} -a <APP> -d                      # Short form
+  {{BIN_NAME}} --app <APP> --managed-commands 'list'
+  {{BIN_NAME}} -a <APP> -m 'list'               # Short form
+
+BEHAVIOR:
+  When --app is provided:
+    - Uses the exact path specified (relative or absolute)
+    - No auto-detection is performed
+  
+  When --app is NOT provided:
+    - Attempts auto-detection (see below)
+    - Searches for Bevy apps in the current project
+
+AUTO-DETECTION (only when --app is omitted):
+  Step 1: Uses cargo metadata to find a Bevy app name:
+    - Checks current directory's default binary (cargo run target)
+    - If not a Bevy app, searches all project binaries
+    - Selects first binary with 'bevy' dependency
+  
+  Step 2: Locates the binary using the detected name:
+    - Checks ./target/debug/<name>
+    - Checks ../../target/debug/<name> (project root)
+    - Falls back to <name> (assumes it's in PATH)
+  
+  Note: Currently only checks debug builds, not release.
+  
+  Use '{{BIN_NAME}} --detect' to see what app would be detected in the current directory.
+
+EXAMPLES:
+  {{BIN_NAME}} -a ./target/debug/my_game -d     # Uses exact path with short forms
+  {{BIN_NAME}} --app ./my_game -m 'ready'       # Mix of long and short forms
+  {{BIN_NAME}} -d                               # Auto-detects app (short form)
+
+NOTES:
+  - Path can be relative or absolute
+  - Must have execute permissions
+  - App must have RemotePlugin configured
+  - Only used with -d/--detached or -m/--managed-commands

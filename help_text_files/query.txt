@@ -1,0 +1,42 @@
+Description: Query entities that have ALL specified components
+
+Usage:
+  {{BIN_NAME}} query <COMPONENT1> [COMPONENT2 ...]
+  {{BIN_NAME}} --managed --commands 'query bevy_transform::components::transform::Transform'
+
+Arguments:
+  COMPONENT1, COMPONENT2, ... - Fully qualified component type names from 'list' command
+
+Examples:
+  # Find all entities with Transform component
+  {{BIN_NAME}} --managed --commands 'query bevy_transform::components::transform::Transform'
+  
+  # Find entities with both Transform AND Name components
+  {{BIN_NAME}} --managed --commands 'query bevy_transform::components::transform::Transform bevy_ecs::name::Name'
+
+Returns: JSON array of entity objects that have ALL specified components
+
+Example output:
+  [
+    {
+      "entity": 4294967352,
+      "components": {
+        "bevy_transform::components::transform::Transform": {
+          "translation": [0.0, 0.0, 0.0],
+          "rotation": [0.0, 0.0, 0.0, 1.0],
+          "scale": [1.0, 1.0, 1.0]
+        }
+      }
+    }
+  ]
+
+COMMON ERRORS:
+  ❌ query Transform
+     Error: Component 'Transform' not found
+  ✅ query bevy_transform::components::transform::Transform
+
+TIP: Always use full component names from the 'list' command!
+
+NOTES:
+  - Custom components need #[derive(Serialize)] and #[reflect(Serialize)] to appear in results
+    (Bevy's built-in components already have these)

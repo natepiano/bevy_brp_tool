@@ -1,0 +1,71 @@
+========================================
+COMMAND: get+watch (bevy/get+watch)
+========================================
+
+DESCRIPTION:
+Watch component data changes on a specific entity in real-time (streaming command)
+
+USAGE:
+  {{BIN_NAME}} get+watch <ENTITY_ID> <COMPONENT1> [COMPONENT2 ...]
+  {{BIN_NAME}} --managed --commands 'get+watch <ENTITY_ID> <COMPONENT1> [COMPONENT2 ...]'
+
+ARGUMENTS:
+  ENTITY_ID                       - The entity to watch (u64 integer, e.g., 12345)
+  COMPONENT1, COMPONENT2, ...     - Fully qualified component type names to watch
+
+RETURNS:
+Initial component state(s), then streaming updates whenever any watched component data changes
+
+BEHAVIOR:
+- Streams until interrupted with Ctrl+C
+- Shows initial state of all specified components immediately
+- Updates only when any of the watched component data actually changes
+- If any component doesn't exist, command will error
+
+EXAMPLES:
+  # Watch single component
+  $ {{BIN_NAME}} get+watch 12345 bevy_transform::components::transform::Transform
+  
+  # Watch multiple components
+  $ {{BIN_NAME}} get+watch 12345 bevy_transform::components::transform::Transform bevy_core::name::Name
+
+EXAMPLE OUTPUT:
+Single component:
+{"translation": [0, 0, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1]}
+{"translation": [5, 0, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1]}
+
+Multiple components:
+{
+  "bevy_transform::components::transform::Transform": {"translation": [0, 0, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1]},
+  "bevy_core::name::Name": "MyEntity"
+}
+(Press Ctrl+C to stop)
+
+NOTES:
+- This is a streaming command that runs until interrupted
+- Perfect for debugging moving entities or animation systems
+- Only shows updates when data actually changes (not every frame)
+- Entity and all specified components must exist when command starts
+- Custom components need #[derive(Serialize)] and #[reflect(Serialize)]
+  (Bevy's built-in components already have these)
+- Watch multiple components to see how they change together
+
+WORKFLOW EXAMPLES:
+# Watch single component - entity's transform while it moves
+$ {{BIN_NAME}} get+watch 12345 bevy_transform::components::transform::Transform
+# In game: Move the entity around and watch the updates stream
+
+# Watch multiple components - debug entity with name and transform
+$ {{BIN_NAME}} get+watch 67890 bevy_transform::components::transform::Transform bevy_core::name::Name
+
+# Debug animation affecting multiple components
+$ {{BIN_NAME}} get+watch 54321 bevy_transform::components::transform::Transform custom_game::components::AnimationState
+
+COMMON ERRORS:
+  ❌ get+watch 12345 Transform
+     Error: Component 'Transform' not found
+  ✅ get+watch 12345 bevy_transform::components::transform::Transform
+
+TIP: Always use full component names from the 'list' command!
+
+See also: get, query, list+watch

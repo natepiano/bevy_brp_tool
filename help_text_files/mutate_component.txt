@@ -1,0 +1,30 @@
+Description: Modify specific fields of a component on an entity
+
+Usage:
+  {{BIN_NAME}} mutate-component <ENTITY_ID> <COMPONENT> '<JSON_PATCH>'
+  {{BIN_NAME}} --managed --commands 'mutate_component <ENTITY_ID> <COMPONENT> <JSON_PATCH>'
+
+Arguments:
+  ENTITY_ID - The numeric ID of the entity
+  COMPONENT - Fully qualified component type name
+  JSON_PATCH - Partial component data to update
+
+Examples:
+  # Update only the translation of a Transform
+  {{BIN_NAME}} mutate-component 12345 bevy_transform::components::transform::Transform '{
+    "translation": [10.0, 20.0, 30.0]
+  }'
+
+  # Update light intensity
+  {{BIN_NAME}} mutate-component 12345 bevy_pbr::light::point_light::PointLight '{
+    "intensity": 2000.0
+  }'
+
+Returns: Success confirmation or error message
+
+NOTES:
+  - Only specified fields are updated
+  - Other fields retain their current values
+  - Component must exist on entity
+  - Custom components need #[derive(Serialize, Deserialize)] and #[reflect(Serialize, Deserialize)]
+    (Bevy's built-in components already have these)

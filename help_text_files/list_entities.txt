@@ -1,0 +1,43 @@
+Description: List all entities in the world with their component types
+
+Usage:
+  {{BIN_NAME}} list_entities
+  {{BIN_NAME}} --managed --commands 'list_entities'
+
+Returns: JSON object with all entities and their components
+
+Example output:
+  {
+    "entities": [
+      {
+        "entity": 4294967355,
+        "generation": 1,
+        "components": [
+          "bevy_transform::components::transform::Transform",
+          "bevy_transform::components::global_transform::GlobalTransform",
+          "bevy_core::name::Name"
+        ]
+      },
+      {
+        "entity": 4294967356,
+        "generation": 1,
+        "components": [
+          "bevy_render::camera::camera::Camera",
+          "bevy_transform::components::transform::Transform"
+        ]
+      }
+    ],
+    "total_count": 2
+  }
+
+NOTES:
+  - Returns ALL entities in the world, not just those with specific components
+  - Shows component type names, not component data
+  - Entity IDs are u64 integers that you can use with other commands
+  - Use this to discover what entities exist before querying their data
+  - Much more comprehensive than 'query' which requires component filters
+
+COMPARISON:
+  list_entities - Shows ALL entities with their component lists
+  query <component> - Shows entities that have specific component(s) with data
+  list - Shows available component types (not entities)

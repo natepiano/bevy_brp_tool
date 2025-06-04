@@ -1,0 +1,12 @@
+{{BIN_NAME}} {{BIN_VERSION}}
+
+{{BIN_NAME}} controls running Bevy apps remotely using the Bevy Remote
+Protocol (BRP). By default, brp will auto-detect Bevy apps in your project
+and connect to apps running on the default port.
+
+Use -h for short descriptions and --help for more details.
+
+Project home page: https://github.com/natepiano/bevy_brp_tool
+
+USAGE:
+  {{BIN_NAME}} [OPTIONS] [COMMAND]

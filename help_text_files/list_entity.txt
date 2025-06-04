@@ -1,0 +1,52 @@
+Description: Get all component data for a single entity
+
+Usage:
+  {{BIN_NAME}} list_entity <ENTITY_ID>
+  {{BIN_NAME}} --managed --commands 'list_entity 4294967355'
+
+Arguments:
+  <ENTITY_ID>  Entity ID to get all component data for (u64 integer)
+
+Returns: JSON object with all component data for the specified entity
+
+Example usage:
+  {{BIN_NAME}} list_entity 4294967355
+
+Example output:
+  {
+    "entity": 4294967355,
+    "generation": 1,
+    "components": {
+      "bevy_transform::components::transform::Transform": {
+        "translation": [0.0, 0.0, 0.0],
+        "rotation": [0.0, 0.0, 0.0, 1.0],
+        "scale": [1.0, 1.0, 1.0]
+      },
+      "bevy_transform::components::global_transform::GlobalTransform": {
+        "translation": [0.0, 0.0, 0.0],
+        "rotation": [0.0, 0.0, 0.0, 1.0],
+        "scale": [1.0, 1.0, 1.0]
+      },
+      "bevy_core::name::Name": {
+        "hash": 15304472766893732223,
+        "name": "MyEntity"
+      }
+    }
+  }
+
+Error handling:
+  - Returns error if entity does not exist
+  - Shows helpful message for non-existent entities
+
+NOTES:
+  - Returns ACTUAL component data, not just component type names
+  - Different from 'list_entities' which shows all entities but only component types
+  - Different from 'get' which requires you to specify the component type
+  - Use 'list_entities' first to discover available entity IDs
+  - Entity IDs are u64 integers (e.g., 4294967355)
+
+COMPARISON:
+  list_entity <id> - Shows ALL component data for ONE specific entity
+  list_entities - Shows ALL entities with their component type names (no data)
+  get <id> <component> - Shows data for ONE component on ONE entity
+  query <component> - Shows entities that have specific component(s) with data

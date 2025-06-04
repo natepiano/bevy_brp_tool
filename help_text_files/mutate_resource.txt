@@ -1,0 +1,24 @@
+Description: Modify specific fields of a resource
+
+Usage:
+  {{BIN_NAME}} mutate-resource <RESOURCE_TYPE> '<JSON_PATCH>'
+  {{BIN_NAME}} --managed --commands 'mutate_resource <RESOURCE_TYPE> <JSON_PATCH>'
+
+Arguments:
+  RESOURCE_TYPE - Fully qualified resource type name
+  JSON_PATCH - Partial resource data to update
+
+Examples:
+  # Update camera skybox brightness
+  {{BIN_NAME}} mutate-resource hana::camera::camera_config::CameraConfig '{
+    "skybox_brightness": 800.0
+  }'
+
+Returns: Success confirmation or error message
+
+NOTES:
+  - Only specified fields are updated
+  - Resource must exist in the world
+  - Partial updates preserve other fields
+  - Custom resources need #[derive(Serialize, Deserialize)] and #[reflect(Serialize, Deserialize)]
+    (Bevy's built-in resources already have these)

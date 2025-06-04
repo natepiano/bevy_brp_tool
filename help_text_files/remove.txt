@@ -1,0 +1,23 @@
+Description: Remove a component from an entity
+
+Usage:
+  {{BIN_NAME}} remove <ENTITY_ID> <COMPONENT>
+  {{BIN_NAME}} --managed --commands 'remove <ENTITY_ID> <COMPONENT>'
+
+Arguments:
+  ENTITY_ID - The numeric ID of the entity
+  COMPONENT - Fully qualified component type name to remove
+
+Examples:
+  # Remove Name component from entity 12345
+  {{BIN_NAME}} remove 12345 bevy_core::name::Name
+
+  # Remove PointLight component
+  {{BIN_NAME}} remove 12345 bevy_pbr::light::point_light::PointLight
+
+Returns: Success confirmation or error message
+
+NOTES:
+  - Component must exist on entity or command will error
+  - Some components may be required by others
+  - Removing Transform may affect entity visibility

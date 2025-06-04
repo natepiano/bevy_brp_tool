@@ -1,0 +1,63 @@
+========================================
+COMMAND: screenshot (brp_tool/screenshot)
+========================================
+
+DESCRIPTION:
+Take a screenshot of the current rendered frame and save it to disk
+
+USAGE:
+  {{BIN_NAME}} screenshot <PATH>
+  {{BIN_NAME}} --managed --commands 'screenshot <PATH>'
+
+ARGUMENTS:
+  PATH - File path where the screenshot will be saved
+         Can be absolute or relative to the app's working directory
+
+EXAMPLES:
+# Save to current directory
+$ {{BIN_NAME}} screenshot ./screenshot.png
+
+# Save with timestamp
+$ {{BIN_NAME}} screenshot "./screenshots/capture_$(date +%Y%m%d_%H%M%S).png"
+
+# Absolute path
+$ {{BIN_NAME}} screenshot /tmp/game_screenshot.png
+
+# Multiple screenshots in sequence
+$ {{BIN_NAME}} --managed --commands 'screenshot /tmp/test1.png,screenshot /tmp/test2.png,shutdown'
+
+RETURNS:
+JSON object with screenshot status
+
+EXAMPLE OUTPUT:
+{
+  "success": true,
+  "path": "/tmp/screenshot.png",
+  "working_directory": "/Users/username/project",
+  "file_written": true,
+  "note": "Screenshot saved successfully."
+}
+
+IMPORTANT NOTES:
+- The command now waits for the screenshot to be written before returning
+- No manual wait is needed between screenshot commands
+- The command will timeout after 5 seconds if the file cannot be written
+- File format determined by extension (.png, .jpg, etc.)
+- Directory must exist or screenshot will fail
+
+COMMON PATTERNS:
+# Basic screenshot
+$ {{BIN_NAME}} --managed --commands 'screenshot /tmp/test.png'
+
+# Before/after comparison
+$ {{BIN_NAME}} --managed --commands 'ready,screenshot /tmp/before.png,spawn {...},screenshot /tmp/after.png'
+
+# Automated testing with screenshots
+$ {{BIN_NAME}} --managed --commands 'ready,screenshot ./baseline.png,mutate_component 12345 {...},screenshot ./result.png,shutdown'
+
+TROUBLESHOOTING:
+- If screenshot appears black, ensure app is ready first
+- If file not created, check directory exists and permissions
+- If timeout occurs, check system resources and disk space
+
+See also: ready

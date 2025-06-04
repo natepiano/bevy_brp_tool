@@ -1,0 +1,66 @@
+========================================
+COMMAND: methods
+========================================
+
+DESCRIPTION:
+List all remote control commands available from the running Bevy application
+
+USAGE:
+  {{BIN_NAME}} methods
+  {{BIN_NAME}} --managed --commands 'methods'
+
+RETURNS:
+List of available method names grouped by category (Bevy, Hana, Watch, etc.)
+
+PURPOSE:
+- Discover what commands the running app supports
+- Check if specific commands are available
+- Identify app-specific custom commands
+- Verify remote control capabilities
+
+EXAMPLE OUTPUT:
+Available methods:
+
+Bevy Commands:
+  bevy/destroy
+  bevy/get
+  bevy/get_resource
+  bevy/insert
+  bevy/insert_resource
+  bevy/list
+  bevy/list_resources
+  bevy/mutate_component
+  bevy/mutate_resource
+  bevy/query
+  bevy/registry/schema
+  bevy/remove
+  bevy/remove_resource
+  bevy/reparent
+  bevy/spawn
+
+Bevy Watch Commands:
+  bevy/get+watch
+  bevy/list+watch
+
+BRP Tool Commands:
+  brp_tool/screenshot
+  brp_tool/shutdown
+  
+Special Commands:
+  methods
+  ready
+
+NOTES:
+- Commands marked [NEW] are not yet implemented in the CLI
+- Some apps may have custom commands not in standard set
+- Use this as first step to understand app capabilities
+- Short names (without prefix) also work for most commands
+
+WORKFLOW EXAMPLE:
+# Always start debugging sessions by checking available methods
+$ {{BIN_NAME}} methods
+# Then use discovered commands
+$ {{BIN_NAME}} list
+$ {{BIN_NAME}} query bevy_transform::components::transform::Transform
+
+See also: --help-for, --list-commands

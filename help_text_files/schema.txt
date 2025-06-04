@@ -1,0 +1,86 @@
+========================================
+COMMAND: schema (bevy/registry/schema)
+========================================
+
+DESCRIPTION:
+Get JSON schemas for registered types in the Bevy type registry
+
+USAGE:
+  {{BIN_NAME}} schema [OPTIONS]
+  {{BIN_NAME}} --managed --commands 'schema'
+
+OPTIONS:
+  --with-crates <CRATES>       Only include types from these crates
+  --without-crates <CRATES>    Exclude types from these crates
+  --with-types <TRAITS>        Only include types with these reflect traits
+  --without-types <TRAITS>     Exclude types with these reflect traits
+
+RETURNS:
+JSON schemas for types matching the filter criteria
+
+PURPOSE:
+- Explore available types and their structure
+- Generate schemas for serialization/deserialization
+- Understand component and resource data formats
+- Debug reflection and type registration issues
+
+FILTER OPTIONS:
+--with-crates: Comma-separated list of crate names to include
+  Example: --with-crates bevy_transform,bevy_pbr
+
+--without-crates: Comma-separated list of crate names to exclude
+  Example: --without-crates bevy_render,bevy_audio
+
+--with-types: Include only types with specific traits
+  Example: --with-types Component,Resource
+
+--without-types: Exclude types with specific traits
+  Example: --without-types RenderResource
+
+EXAMPLES:
+# Get all registered schemas
+$ {{BIN_NAME}} schema
+
+# Get only component schemas from bevy_transform
+$ {{BIN_NAME}} schema --with-crates bevy_transform --with-types Component
+
+# Exclude render-related schemas
+$ {{BIN_NAME}} schema --without-crates bevy_render,bevy_pbr
+
+# Get only resource schemas
+$ {{BIN_NAME}} schema --with-types Resource
+
+EXAMPLE OUTPUT:
+{
+  "bevy_transform::components::transform::Transform": {
+    "type": "struct",
+    "fields": {
+      "translation": {
+        "type": "bevy_math::Vec3",
+        "default": [0.0, 0.0, 0.0]
+      },
+      "rotation": {
+        "type": "bevy_math::Quat",
+        "default": [0.0, 0.0, 0.0, 1.0]
+      },
+      "scale": {
+        "type": "bevy_math::Vec3",
+        "default": [1.0, 1.0, 1.0]
+      }
+    }
+  }
+}
+
+NOTES:
+- Schemas show the structure of registered types
+- Useful for understanding component data format for spawn/insert
+- Not all types may have full schema information
+- Filtering helps manage large schema outputs
+
+WORKFLOW EXAMPLE:
+# Discover structure before spawning
+$ {{BIN_NAME}} schema --with-crates bevy_transform --with-types Component
+# Use schema to construct proper spawn command
+$ {{BIN_NAME}} spawn '{"bevy_transform::components::transform::Transform": {...}}'
+
+See also: list, list_resources, spawn

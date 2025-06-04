@@ -1,0 +1,20 @@
+Description: List all component types registered in the Bevy world
+
+Usage:
+  {{BIN_NAME}} list
+  {{BIN_NAME}} --managed --commands 'list'
+
+Returns: JSON array of fully qualified component type names
+
+Example output:
+  [
+    "bevy_transform::components::transform::Transform",
+    "bevy_transform::components::global_transform::GlobalTransform",
+    "bevy_core::name::Name",
+    "bevy_pbr::light::point_light::PointLight"
+  ]
+
+IMPORTANT:
+  - Returns component TYPES, not entity IDs
+  - Use these exact type names when querying or getting components
+  - Component names must be fully qualified (include module path)

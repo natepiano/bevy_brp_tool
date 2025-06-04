@@ -1,0 +1,88 @@
+========================================
+COMMAND: list+watch (bevy/list+watch)
+========================================
+
+DESCRIPTION:
+Watch component changes on a specific entity in real-time (streaming command)
+
+USAGE:
+  {{BIN_NAME}} list+watch <ENTITY_ID>
+  {{BIN_NAME}} --port 15702 list+watch 12345
+  {{BIN_NAME}} --managed --commands 'list+watch,67890'
+
+PARAMETERS:
+  ENTITY_ID    Entity ID to watch for component changes (u64 integer, e.g., 12345)
+
+RETURNS:
+Initial state of all components on the entity, then streaming updates when components 
+are added, removed, or modified on that specific entity
+
+BEHAVIOR:
+- Streams until interrupted with Ctrl+C
+- Shows current component state immediately
+- Updates whenever components on the entity change:
+  * Component added to entity
+  * Component removed from entity
+  * Component data modified on entity
+- Provides real-time monitoring of a specific entity's component state
+
+EXAMPLE OUTPUT:
+Initial state:
+{
+  "entity": 12345,
+  "generation": 0,
+  "components": {
+    "bevy_transform::components::transform::Transform": {
+      "translation": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0, 1.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    "bevy_core::name::Name": "MyEntity"
+  }
+}
+
+Update (component added):
+{
+  "entity": 12345,
+  "generation": 0,
+  "components": {
+    "bevy_transform::components::transform::Transform": { ... },
+    "bevy_core::name::Name": "MyEntity",
+    "my_game::components::Health": { "current": 100, "max": 100 }
+  }
+}
+
+(Press Ctrl+C to stop)
+
+NOTES:
+- This is a streaming command that runs until interrupted
+- Requires a valid entity ID that exists in the world
+- Shows all component changes on the specified entity
+- Useful for debugging entity state changes and component modifications
+- If the entity doesn't exist, the command will fail
+
+WORKFLOW EXAMPLES:
+# Watch a specific entity while manipulating it
+$ {{BIN_NAME}} spawn '{"bevy_core::name::Name": "TestEntity"}'  # Note the entity ID
+$ {{BIN_NAME}} list+watch 12345  # Watch the spawned entity
+
+# In another terminal, modify the entity to see live updates
+$ {{BIN_NAME}} insert 12345 '{"my_game::Health": {"current": 100}}'
+$ {{BIN_NAME}} mutate_component 12345 bevy_transform::components::transform::Transform '{"translation": [10.0, 0.0, 0.0]}'
+
+# Monitor entity during gameplay or system execution
+$ {{BIN_NAME}} --managed --app my_game --commands 'list_entities'  # Find entity IDs
+$ {{BIN_NAME}} --managed --app my_game --commands 'list+watch,67890'  # Watch specific entity
+
+ERROR CASES:
+- Entity ID doesn't exist: Command fails with "Entity does not exist" error
+- Invalid entity ID format: Command fails with parsing error
+- App not responding: Connection timeout
+
+RELATED COMMANDS:
+- list_entity: Get current state of entity (one-time, not streaming)
+- get+watch: Watch specific components on entity (streaming, filtered)
+- query: Find entities with specific components
+- list_entities: List all entities in the world
+
+See also: get+watch, list_entity, query

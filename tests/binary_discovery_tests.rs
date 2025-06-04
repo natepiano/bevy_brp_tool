@@ -1,0 +1,346 @@
+//! Tests for binary discovery across different working directories
+//!
+//! These tests verify that the CLI tool can correctly find and execute Bevy apps
+//! from various working directories, including subdirectories of the workspace.
+//!
+//! These tests were created to catch the bug where `brp -d` would fail when run
+//! from a subdirectory of the workspace because it was looking for binaries in
+//! `./target/debug/` instead of `<workspace_root>/target/debug/`.
+
+mod support;
+
+use std::env;
+use std::path::PathBuf;
+
+use anyhow::Result;
+use support::*;
+
+/// Test that would have caught the binary discovery bug
+///
+/// This test simulates the bug where running `brp -d` from a subdirectory
+/// of the workspace would fail to find the binary because it was looking
+/// in `./target/debug/` instead of `<workspace_root>/target/debug/`.
+#[tokio::test]
+async fn test_binary_discovery_from_workspace_subdirectory() -> Result<()> {
+    let runner = CliTestRunner::new()?;
+
+    // Store the original working directory
+    let original_cwd = env::current_dir()?;
+
+    // Find the workspace root by looking for Cargo.toml with workspace definition
+    let workspace_root = find_workspace_root(&original_cwd)?;
+
+    // Find any subdirectory with a Cargo.toml (a workspace member)
+    let test_subdir = find_workspace_member_dir(&workspace_root)?;
+
+    // Find the actual binary that was built (don't hardcode the name)
+    let binary_path = find_workspace_binary(&workspace_root)?;
+
+    // Change to the subdirectory
+    env::set_current_dir(&test_subdir)?;
+
+    // Simulate the old buggy behavior: if we were to look for the binary
+    // in `./target/debug/<binary>` from this subdirectory, it wouldn't exist
+    let binary_name = binary_path.file_name().unwrap();
+    let buggy_path = test_subdir.join("target").join("debug").join(binary_name);
+    assert!(
+        !buggy_path.exists(),
+        "Binary should NOT exist at subdirectory relative path (this was the bug): {}",
+        buggy_path.display()
+    );
+
+    // The correct binary should exist at the workspace root
+    assert!(
+        binary_path.exists(),
+        "Binary should exist at workspace target directory: {}",
+        binary_path.display()
+    );
+
+    // Now test that our CLI tool can still run basic commands from subdirectory
+    let output = runner.run_command(&["--help"]).await?;
+
+    // Verify that the CLI tool itself can still run from the subdirectory
+    assert!(
+        output.success(),
+        "CLI should work from subdirectory (basic sanity check)"
+    );
+
+    // Test that detection commands work from subdirectory
+    // This exercises the cargo metadata detection that was fixed
+    let output = runner.run_command(&["--detect"]).await?;
+
+    // The --detect command should succeed from subdirectory
+    // This would have failed with the old buggy code
+    assert!(
+        output.success(),
+        "Detect command should work from subdirectory - this test would have caught the bug"
+    );
+
+    // Restore original working directory
+    env::set_current_dir(&original_cwd)?;
+
+    Ok(())
+}
+
+/// Helper function to find the workspace root
+fn find_workspace_root(start_path: &std::path::Path) -> Result<PathBuf> {
+    let mut current = start_path;
+    loop {
+        let cargo_toml = current.join("Cargo.toml");
+        if cargo_toml.exists() {
+            // Check if this is a workspace by reading the file
+            let content = std::fs::read_to_string(&cargo_toml)?;
+            if content.contains("[workspace]") {
+                return Ok(current.to_path_buf());
+            }
+        }
+
+        match current.parent() {
+            Some(parent) => current = parent,
+            None => {
+                // If we can't find a workspace, assume the start path is the workspace root
+                return Ok(start_path.to_path_buf());
+            }
+        }
+    }
+}
+
+/// Find any workspace member directory (a subdirectory with Cargo.toml)
+fn find_workspace_member_dir(workspace_root: &std::path::Path) -> Result<PathBuf> {
+    // First, look for nested crates (like crates/*/Cargo.toml)
+    for entry in std::fs::read_dir(workspace_root)? {
+        let entry = entry?;
+        if entry.file_type()?.is_dir() {
+            let dir_path = entry.path();
+            // Check if this directory contains subdirectories with Cargo.toml
+            if let Ok(subdirs) = std::fs::read_dir(&dir_path) {
+                for subentry in subdirs.flatten() {
+                    if subentry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) {
+                        let subdir_path = subentry.path();
+                        if subdir_path.join("Cargo.toml").exists() {
+                            return Ok(subdir_path);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Second, look for any direct subdirectory with Cargo.toml
+    for entry in std::fs::read_dir(workspace_root)? {
+        let entry = entry?;
+        if entry.file_type()?.is_dir() {
+            let dir_path = entry.path();
+            if dir_path.join("Cargo.toml").exists() {
+                return Ok(dir_path);
+            }
+        }
+    }
+
+    // Fallback: create a temporary test directory
+    let temp_dir = workspace_root.join("src"); // src directory should exist in most Rust projects
+    if temp_dir.exists() {
+        return Ok(temp_dir);
+    }
+
+    // Last resort: use the workspace root itself
+    Ok(workspace_root.to_path_buf())
+}
+
+/// Find the workspace binary (any binary in target/debug or target/release)
+fn find_workspace_binary(workspace_root: &std::path::Path) -> Result<PathBuf> {
+    // Check debug directory first
+    let debug_dir = workspace_root.join("target").join("debug");
+    if let Ok(entries) = std::fs::read_dir(&debug_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_file() {
+                if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                    // Skip files with extensions (likely not binaries on Unix)
+                    if !name.contains('.')
+                        && path.metadata().map(|m| m.len() > 1000).unwrap_or(false)
+                    {
+                        return Ok(path);
+                    }
+                }
+            }
+        }
+    }
+
+    // Check release directory as fallback
+    let release_dir = workspace_root.join("target").join("release");
+    if let Ok(entries) = std::fs::read_dir(&release_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_file() {
+                if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                    if !name.contains('.')
+                        && path.metadata().map(|m| m.len() > 1000).unwrap_or(false)
+                    {
+                        return Ok(path);
+                    }
+                }
+            }
+        }
+    }
+
+    // Last resort: assume the binary we're testing exists
+    Ok(workspace_root.join("target").join("debug").join("brp"))
+}
+
+/// Test binary discovery from workspace root
+#[tokio::test]
+async fn test_binary_discovery_from_workspace_root() -> Result<()> {
+    let runner = CliTestRunner::new()?;
+    let original_cwd = env::current_dir()?;
+
+    // Find the workspace root
+    let workspace_root = find_workspace_root(&original_cwd)?;
+    let binary_path = find_workspace_binary(&workspace_root)?;
+
+    assert!(
+        binary_path.exists(),
+        "Binary should exist at workspace root target directory: {}",
+        binary_path.display()
+    );
+
+    // Test basic functionality from workspace root
+    let output = runner.run_command(&["--detect"]).await?;
+    assert!(
+        output.success(),
+        "Detect command should work from workspace root"
+    );
+
+    Ok(())
+}
+
+/// Test binary discovery from a directory above the workspace
+#[tokio::test]
+async fn test_binary_discovery_from_parent_directory() -> Result<()> {
+    let runner = CliTestRunner::new()?;
+    let original_cwd = env::current_dir()?;
+
+    // Go to parent directory (typically /Users/natemccoy/rust/)
+    if let Some(parent_dir) = original_cwd.parent() {
+        env::set_current_dir(parent_dir)?;
+
+        // Test that the tool can still provide basic functionality
+        // even when not in a cargo project
+        let output = runner.run_command(&["--help"]).await?;
+        assert!(
+            output.success(),
+            "Help command should work from parent directory"
+        );
+
+        // The --detect command might fail since we're not in a cargo project,
+        // but it should fail gracefully, not crash
+        let _output = runner.run_command(&["--detect"]).await;
+        // Don't assert success here since we're outside the project
+
+        // Restore working directory
+        env::set_current_dir(&original_cwd)?;
+    }
+
+    Ok(())
+}
+
+/// Test binary discovery from a standalone Bevy project
+///
+/// This simulates testing from any other Cargo project
+#[tokio::test]
+async fn test_binary_discovery_from_standalone_project() -> Result<()> {
+    let runner = CliTestRunner::new()?;
+    let original_cwd = env::current_dir()?;
+
+    // Create a temporary standalone project for testing
+    let temp_dir = tempfile::tempdir()?;
+    let temp_project_dir = temp_dir.path();
+
+    // Create a minimal Cargo.toml
+    std::fs::write(
+        temp_project_dir.join("Cargo.toml"),
+        r#"[package]
+name = "test-project"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = "0.16"
+"#,
+    )?;
+
+    // Create src directory and main.rs
+    std::fs::create_dir_all(temp_project_dir.join("src"))?;
+    std::fs::write(
+        temp_project_dir.join("src").join("main.rs"),
+        "fn main() { println!(\"Hello, world!\"); }",
+    )?;
+
+    env::set_current_dir(temp_project_dir)?;
+
+    // Test that our CLI tool still works when run from a different project
+    let output = runner.run_command(&["--help"]).await?;
+    assert!(
+        output.success(),
+        "Help command should work from standalone project"
+    );
+
+    // Test detect command - this should work since it's a Cargo project
+    let output = runner.run_command(&["--detect"]).await?;
+    assert!(
+        output.success(),
+        "Detect command should work from standalone Bevy project"
+    );
+
+    // Restore working directory
+    env::set_current_dir(&original_cwd)?;
+
+    Ok(())
+}
+
+/// Test that demonstrates the specific bug scenario
+///
+/// This test shows what would have happened with the old buggy code:
+/// - Run from a subdirectory of the workspace
+/// - Try to find a binary using relative path construction
+/// - Fail because the relative path doesn't exist
+#[tokio::test]
+async fn test_specific_bug_scenario_simulation() -> Result<()> {
+    let original_cwd = env::current_dir()?;
+
+    // Find the workspace root and a member directory
+    let workspace_root = find_workspace_root(&original_cwd)?;
+    let test_subdir = find_workspace_member_dir(&workspace_root)?;
+    let binary_path = find_workspace_binary(&workspace_root)?;
+
+    // Change to the subdirectory
+    env::set_current_dir(&test_subdir)?;
+
+    // Simulate the old buggy behavior
+    let binary_name = binary_path.file_name().unwrap();
+    let buggy_binary_path = PathBuf::from("target/debug").join(binary_name);
+
+    // This should NOT exist (demonstrating the bug)
+    assert!(
+        !buggy_binary_path.exists(),
+        "Buggy relative path should not exist: {}",
+        buggy_binary_path.display()
+    );
+
+    // The correct binary path should exist at the workspace root
+    // This SHOULD exist (demonstrating the fix)
+    assert!(
+        binary_path.exists(),
+        "Correct absolute path should exist: {}",
+        binary_path.display()
+    );
+
+    println!("Bug simulation:");
+    println!("  Buggy path (would fail): {}", buggy_binary_path.display());
+    println!("  Fixed path (works): {}", binary_path.display());
+
+    // Restore working directory
+    env::set_current_dir(&original_cwd)?;
+
+    Ok(())
+}

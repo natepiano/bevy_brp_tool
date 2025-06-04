@@ -1,0 +1,19 @@
+Description: Destroy an entity and all its components
+
+Usage:
+  {{BIN_NAME}} destroy <ENTITY_ID>
+  {{BIN_NAME}} --managed --commands 'destroy <ENTITY_ID>'
+
+Arguments:
+  ENTITY_ID - The numeric ID of the entity to destroy
+
+Examples:
+  # Destroy entity 12345
+  {{BIN_NAME}} destroy 12345
+
+Returns: Success confirmation or error message
+
+NOTES:
+  - Destroying a parent entity also destroys all children
+  - Entity ID must exist or command will error
+  - This operation cannot be undone

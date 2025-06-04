@@ -1,0 +1,16 @@
+Build profile to use when building/running your app.
+
+Common profiles:
+- debug (default): Fast compilation, slower runtime, includes debug symbols
+- release: Optimized compilation, faster runtime, minimal debug info
+- dev: Usually an alias for debug
+- prod: Usually an alias for release
+
+The profile must match what you used to build your binary. For example:
+- If you ran `cargo build --release`, use `--profile release`
+- If you ran `cargo build` (debug mode), use `--profile debug` or omit this flag
+
+Usage examples:
+  brp --profile release ready
+  brp -P debug spawn '{"Transform": {"translation": [0,0,0]}}'
+  brp --profile prod list

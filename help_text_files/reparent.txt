@@ -1,0 +1,23 @@
+Description: Change the parent of an entity in the hierarchy
+
+Usage:
+  {{BIN_NAME}} reparent <CHILD_ID> <PARENT_ID>
+  {{BIN_NAME}} --managed --commands 'reparent <CHILD_ID> <PARENT_ID>'
+
+Arguments:
+  CHILD_ID - The entity ID to reparent
+  PARENT_ID - The new parent entity ID (use 'null' for no parent)
+
+Examples:
+  # Make entity 12345 a child of entity 67890
+  {{BIN_NAME}} reparent 12345 67890
+
+  # Remove parent (make entity top-level)
+  {{BIN_NAME}} reparent 12345 null
+
+Returns: Success confirmation or error message
+
+NOTES:
+  - Both entities must exist
+  - Creates parent-child transform relationship
+  - Child inherits parent's transform

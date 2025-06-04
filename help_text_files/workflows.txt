@@ -1,0 +1,288 @@
+========================================
+BRP TOOL - WORKFLOW EXAMPLES
+========================================
+
+These examples show complete workflows for common debugging tasks.
+Each workflow demonstrates how to chain commands together to achieve specific goals.
+
+=====================================
+WORKFLOW 1: Component Discovery
+=====================================
+Goal: Find what components are available and explore entities
+
+Step 1: Discover available methods
+$ {{BIN_NAME}} --managed-commands 'methods'
+Output: Lists all available commands
+
+Step 2: List all component types
+$ {{BIN_NAME}} --managed-commands 'list'
+Output:
+[
+  "bevy_transform::components::transform::Transform",
+  "bevy_transform::components::global_transform::GlobalTransform",
+  "bevy_core::name::Name",
+  "bevy_pbr::light::point_light::PointLight",
+  "bevy_pbr::pbr_bundle::StandardMaterial",
+  "hana::movable::components::Movable",
+  "hana::movable::selection::components::Selection"
+]
+
+Step 3: Query entities with specific components
+$ {{BIN_NAME}} --managed-commands 'query bevy_transform::components::transform::Transform bevy_ecs::name::Name'
+Output: [{"entity": 4294967352, "components": {...}}, ...]  # Entity objects with both Transform AND Name
+
+=====================================
+WORKFLOW 2: Entity Inspection
+=====================================
+Goal: Inspect and understand entity structure
+
+Step 1: Find all entities with transforms
+$ {{BIN_NAME}} --managed-commands 'query bevy_transform::components::transform::Transform'
+Output: [{"entity": 4294967352, "components": {...}}, {"entity": 4294967353, "components": {...}}, ...]
+
+Step 2: Get detailed component data for an entity
+$ {{BIN_NAME}} --managed-commands 'get 4294967352 bevy_transform::components::transform::Transform'
+Output:
+{
+  "translation": [10.0, 5.0, 0.0],
+  "rotation": [0.0, 0.0, 0.0, 1.0],
+  "scale": [1.0, 1.0, 1.0]
+}
+
+Step 3: Check if entity has a name
+$ {{BIN_NAME}} --managed-commands 'get 4294967352 bevy_ecs::name::Name'
+Output: "Player Character"
+
+Step 4: Combine multiple inspections
+$ {{BIN_NAME}} --managed-commands 'get 4294967352 bevy_transform::components::transform::Transform,get 4294967352 bevy_ecs::name::Name,get 4294967352 hana::movable::components::Movable'
+
+=====================================
+WORKFLOW 3: Visual Debugging
+=====================================
+Goal: Take screenshots before and after changes to debug visual issues
+
+Step 1: Ensure app is ready
+$ {{BIN_NAME}} --managed-commands 'ready'
+Output: {"ready": true, "frame_count": 120, ...}
+
+Step 2: Take initial screenshot
+$ {{BIN_NAME}} --managed-commands 'screenshot /tmp/before.png,wait:1'
+Output: {"success": true, "path": "/tmp/before.png", ...}
+
+Step 3: Find and modify an entity
+$ {{BIN_NAME}} --managed-commands 'query bevy_ecs::name::Name'
+Output: [{"entity": 4294967352, "components": {...}}, {"entity": 4294967353, "components": {...}}]
+
+Step 4: Move an entity by mutating its transform
+$ {{BIN_NAME}} --managed-commands 'mutate_component 4294967352 bevy_transform::components::transform::Transform {"translation": [20.0, 10.0, 0.0]}'
+
+Step 5: Take comparison screenshot
+$ {{BIN_NAME}} --managed-commands 'wait:1,screenshot /tmp/after.png,wait:1'
+
+Step 6: Compare screenshots side-by-side
+$ open /tmp/before.png /tmp/after.png  # macOS
+$ eog /tmp/before.png /tmp/after.png   # Linux
+
+=====================================
+WORKFLOW 4: Resource Monitoring
+=====================================
+Goal: Monitor and modify global game resources
+
+Step 1: List all available resources
+$ {{BIN_NAME}} --managed-commands 'list_resources'
+Output:
+[
+  "bevy_time::time::Time",
+  "bevy_window::window::Windows",
+  "bevy_asset::assets::Assets<bevy_render::mesh::mesh::Mesh>",
+  "hana::camera::camera_config::CameraConfig"
+]
+
+Step 2: Check current time resource
+$ {{BIN_NAME}} --managed-commands 'get_resource bevy_time::time::Time'
+Output:
+{
+  "delta_seconds": 0.016,
+  "elapsed_seconds": 42.5,
+  "frame_count": 2550
+}
+
+Step 3: Monitor camera configuration
+$ {{BIN_NAME}} --managed-commands 'get_resource hana::camera::camera_config::CameraConfig'
+Output:
+{
+  "value": {
+    "current": {
+      "focus": [2.5, 1.0, 2.5],
+      "pitch": 0.163,
+      "radius": 15.0,
+      "yaw": 0.785
+    },
+    "skybox_brightness": 500.0,
+    "tonemapping": "TonyMcMapface"
+  }
+}
+
+Step 4: Modify camera settings
+$ {{BIN_NAME}} --managed-commands 'mutate_resource hana::camera::camera_config::CameraConfig {"skybox_brightness": 800.0}'
+
+=====================================
+WORKFLOW 5: Entity Manipulation
+=====================================
+Goal: Create, modify, and destroy entities dynamically
+
+Step 1: Create a new entity with multiple components
+$ {{BIN_NAME}} --managed-commands 'spawn {
+  "bevy_transform::components::transform::Transform": {
+    "translation": [0.0, 10.0, 0.0],
+    "rotation": [0.0, 0.0, 0.0, 1.0],
+    "scale": [2.0, 2.0, 2.0]
+  },
+  "bevy_ecs::name::Name": "TestCube",
+  "hana::movable::components::Movable": {}
+}'
+Output: {"entity": 98765}
+
+Step 2: Add a light component to the entity
+$ {{BIN_NAME}} --managed-commands 'insert 98765 {
+  "bevy_pbr::light::point_light::PointLight": {
+    "color": [1.0, 0.0, 0.0, 1.0],
+    "intensity": 2000.0,
+    "range": 50.0,
+    "radius": 0.0
+  }
+}'
+
+Step 3: Create parent-child relationship
+$ {{BIN_NAME}} --managed-commands 'reparent 98765 12345'
+# Entity 98765 is now a child of entity 12345
+
+Step 4: Remove components selectively
+$ {{BIN_NAME}} --managed-commands 'remove 98765 bevy_pbr::light::point_light::PointLight'
+
+Step 5: Destroy the entity
+$ {{BIN_NAME}} --managed-commands 'destroy 98765'
+
+=====================================
+WORKFLOW 6: Live Monitoring
+=====================================
+Goal: Watch entities and components change in real-time
+
+Terminal 1: Watch transform changes on a specific entity
+$ {{BIN_NAME}} --managed-commands 'get+watch 12345 bevy_transform::components::transform::Transform'
+Initial: {"translation": [0, 0, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1]}
+Update: {"translation": [5, 0, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1]}
+Update: {"translation": [10, 0, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1]}
+(Press Ctrl+C to stop)
+
+Terminal 2: Monitor new components being registered
+$ {{BIN_NAME}} --managed-commands 'list+watch'
+Initial: ["bevy_transform::components::transform::Transform", ...]
+Update: Component added: "my_game::components::Health"
+Update: Component added: "my_game::components::Inventory"
+(Press Ctrl+C to stop)
+
+=====================================
+WORKFLOW 7: Automated Testing
+=====================================
+Goal: Script automated visual regression tests
+
+create_test_scene.sh:
+#!/bin/bash
+{{BIN_NAME}} --managed-commands '
+  ready,
+  spawn {
+    "bevy_transform::components::transform::Transform": {
+      "translation": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0, 1.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    "bevy_ecs::name::Name": "TestObject"
+  },
+  wait:1,
+  screenshot ./test_initial.png,
+  wait:1,
+  query bevy_core::name::Name' | tail -1 > entity_id.txt
+
+# Extract entity ID and modify it
+ENTITY_ID=$(cat entity_id.txt | jq -r '.[0]')
+{{BIN_NAME}} --managed-commands "
+  mutate_component $ENTITY_ID bevy_transform::components::transform::Transform {\"translation\": [10.0, 0.0, 0.0]},
+  wait:1,
+  screenshot ./test_moved.png,
+  wait:1,
+  shutdown"
+
+# Compare screenshots
+if ! cmp -s test_initial.png test_expected_initial.png; then
+  echo "Initial state differs from expected!"
+  exit 1
+fi
+
+=====================================
+WORKFLOW 8: Complex JSON with Heredocs
+=====================================
+Goal: Handle complex component data without escaping issues
+
+Using heredoc for complex spawn:
+$ {{BIN_NAME}} --managed-commands "spawn $(cat <<'EOF'
+{
+  "bevy_transform::components::transform::Transform": {
+    "translation": [0.0, 5.0, -10.0],
+    "rotation": [0.0, 0.0, 0.0, 1.0],
+    "scale": [1.0, 1.0, 1.0]
+  },
+  "bevy_pbr::pbr_bundle::StandardMaterial": {
+    "base_color": [1.0, 0.5, 0.0, 1.0],
+    "metallic": 0.8,
+    "roughness": 0.2,
+    "emissive": [0.0, 0.0, 0.0, 1.0]
+  },
+  "bevy_ecs::name::Name": "ComplexEntity",
+  "hana::shape::metal_sphere::MetalSphere": {
+    "radius": 2.5
+  }
+}
+EOF
+)"
+
+=====================================
+TIPS FOR EFFECTIVE WORKFLOWS
+=====================================
+
+1. ALWAYS START WITH DISCOVERY:
+   - Use 'methods' to see available commands
+   - Use 'list' to discover component types
+   - Use 'list_resources' to find available resources
+
+2. USE FULLY QUALIFIED NAMES:
+   ❌ query Transform
+   ✅ query bevy_transform::components::transform::Transform
+
+3. CHAIN COMMANDS EFFICIENTLY:
+   - Separate commands with commas: 'cmd1,cmd2,cmd3'
+   - Add waits after screenshots: 'screenshot /tmp/test.png,wait:1'
+   - Group related operations together
+
+4. HANDLE ASYNC OPERATIONS:
+   - Screenshots save asynchronously - always wait after
+   - Entity spawning is immediate but rendering takes frames
+   - Use 'ready' to ensure app stability
+
+5. DEBUG SYSTEMATICALLY:
+   - Take screenshots at each step
+   - Query before modifying to verify entity exists
+   - Use get+watch for live debugging
+
+6. SCRIPT FOR REPEATABILITY:
+   - Save complex commands in shell scripts
+   - Use environment variables for entity IDs
+   - Pipe command lists for batch operations
+
+7. ERROR HANDLING:
+   - Check command output with jq
+   - Verify entity IDs before using them
+   - Use managed commands for better error reporting
+
+For more help on specific commands, use:
+  {{BIN_NAME}} --help-for <COMMAND>
