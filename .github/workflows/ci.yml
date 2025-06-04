@@ -19,7 +19,7 @@ concurrency:
 jobs:
   # Fast format check
   format:
-    name: Format Check
+    name: Format
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -79,9 +79,6 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Install cargo-nextest
-        uses: taiki-e/install-action@nextest
-
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -100,7 +97,7 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Run tests
-        run: cargo nextest run --all-features
+        run: cargo test --all-features
         env:
           # Disable GPU/windowing for headless testing
           WGPU_BACKEND: "gl"
