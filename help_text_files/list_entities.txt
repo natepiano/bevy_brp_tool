@@ -1,43 +1,92 @@
-Description: List all entities in the world with their component types
+========================================
+COMMAND: list_entities (bevy/list_entities)
+========================================
 
-Usage:
+DESCRIPTION:
+List all entities in the world with their component types
+
+USAGE:
   {{BIN_NAME}} list_entities
+  {{BIN_NAME}} list-entities
   {{BIN_NAME}} --managed --commands 'list_entities'
 
-Returns: JSON object with all entities and their components
+RETURNS:
+JSON object with all entities and their components
 
-Example output:
-  {
-    "entities": [
-      {
-        "entity": 4294967355,
-        "generation": 1,
-        "components": [
-          "bevy_transform::components::transform::Transform",
-          "bevy_transform::components::global_transform::GlobalTransform",
-          "bevy_core::name::Name"
-        ]
-      },
-      {
-        "entity": 4294967356,
-        "generation": 1,
-        "components": [
-          "bevy_render::camera::camera::Camera",
-          "bevy_transform::components::transform::Transform"
-        ]
-      }
-    ],
-    "total_count": 2
-  }
+EXAMPLE OUTPUT:
+{
+  "entities": [
+    {
+      "entity": 4294967355,
+      "generation": 1,
+      "components": [
+        "bevy_transform::components::transform::Transform",
+        "bevy_transform::components::global_transform::GlobalTransform",
+        "bevy_core::name::Name"
+      ]
+    },
+    {
+      "entity": 4294967356,
+      "generation": 1,
+      "components": [
+        "bevy_render::camera::camera::Camera",
+        "bevy_transform::components::transform::Transform"
+      ]
+    }
+  ],
+  "total_count": 2
+}
+
+EXAMPLES:
+# List all entities
+$ {{BIN_NAME}} list_entities
+
+# Count total entities
+$ {{BIN_NAME}} list_entities | jq '.total_count'
+
+# Find entities with specific component
+$ {{BIN_NAME}} list_entities | jq '.entities[] | select(.components[] | contains("Camera"))'
+
+COMMON PATTERNS:
+# Find entities with names
+$ {{BIN_NAME}} list_entities | jq '.entities[] | select(.components[] | contains("Name"))'
+
+# Get all entity IDs
+$ {{BIN_NAME}} list_entities | jq '.entities[].entity'
+
+# Find entities with multiple specific components
+$ {{BIN_NAME}} list_entities | jq '.entities[] | select(
+  (.components[] | contains("Transform")) and 
+  (.components[] | contains("Mesh"))
+)'
+
+FILTERING EXAMPLES:
+# Entities with lights
+$ {{BIN_NAME}} list_entities | jq '.entities[] | select(.components[] | contains("Light"))'
+
+# Count entities by component count
+$ {{BIN_NAME}} list_entities | jq '.entities | group_by(.components | length) | map({component_count: .[0].components | length, entity_count: length})'
 
 NOTES:
-  - Returns ALL entities in the world, not just those with specific components
-  - Shows component type names, not component data
-  - Entity IDs are u64 integers that you can use with other commands
-  - Use this to discover what entities exist before querying their data
-  - Much more comprehensive than 'query' which requires component filters
+- Returns ALL entities in the world, not just those with specific components
+- Shows component type names, not component data
+- Entity IDs are u64 integers that you can use with other commands
+- Use this to discover what entities exist before querying their data
+- Much more comprehensive than 'query' which requires component filters
+- Useful for debugging entity leaks or understanding scene structure
 
 COMPARISON:
-  list_entities - Shows ALL entities with their component lists
-  query <component> - Shows entities that have specific component(s) with data
-  list - Shows available component types (not entities)
+- list_entities: Shows ALL entities with their component lists
+- query <component>: Shows entities that have specific component(s) with data
+- list: Shows available component types (not entities)
+- list_entity <id>: Shows detailed info about one specific entity
+
+WORKFLOW EXAMPLE:
+# Discover scene structure
+$ {{BIN_NAME}} list_entities
+# Find camera entity
+$ {{BIN_NAME}} list_entities | jq '.entities[] | select(.components[] | contains("Camera"))'
+# Get camera transform
+$ {{BIN_NAME}} get 4294967356 bevy_transform::components::transform::Transform
+
+See also: query, list_entity, list, spawn

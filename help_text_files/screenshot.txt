@@ -39,8 +39,7 @@ EXAMPLE OUTPUT:
 }
 
 IMPORTANT NOTES:
-- The command now waits for the screenshot to be written before returning
-- No manual wait is needed between screenshot commands
+- The command waits for the screenshot to be written before returning
 - The command will timeout after 5 seconds if the file cannot be written
 - File format determined by extension (.png, .jpg, etc.)
 - Directory must exist or screenshot will fail

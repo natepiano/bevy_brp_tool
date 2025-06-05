@@ -1,30 +1,93 @@
-Description: Modify specific fields of a component on an entity
+========================================
+COMMAND: mutate_component (bevy/mutate_component)
+========================================
 
-Usage:
+DESCRIPTION:
+Modify specific fields of a component on an entity without replacing the entire component
+
+USAGE:
   {{BIN_NAME}} mutate-component <ENTITY_ID> <COMPONENT> '<JSON_PATCH>'
   {{BIN_NAME}} --managed --commands 'mutate_component <ENTITY_ID> <COMPONENT> <JSON_PATCH>'
 
-Arguments:
+ARGUMENTS:
   ENTITY_ID - The numeric ID of the entity
   COMPONENT - Fully qualified component type name
   JSON_PATCH - Partial component data to update
 
-Examples:
-  # Update only the translation of a Transform
-  {{BIN_NAME}} mutate-component 12345 bevy_transform::components::transform::Transform '{
-    "translation": [10.0, 20.0, 30.0]
-  }'
+RETURNS:
+Success confirmation or error message
 
-  # Update light intensity
-  {{BIN_NAME}} mutate-component 12345 bevy_pbr::light::point_light::PointLight '{
-    "intensity": 2000.0
-  }'
+EXAMPLE OUTPUT:
+{"status": "ok"}
 
-Returns: Success confirmation or error message
+EXAMPLES:
+# Update only the translation of a Transform
+$ {{BIN_NAME}} mutate-component 12345 bevy_transform::components::transform::Transform '{
+  "translation": [10.0, 20.0, 30.0]
+}'
+
+# Update light intensity
+$ {{BIN_NAME}} mutate-component 12345 bevy_pbr::light::point_light::PointLight '{
+  "intensity": 2000.0
+}'
+
+# Update multiple fields at once
+$ {{BIN_NAME}} mutate-component 12345 bevy_transform::components::transform::Transform '{
+  "translation": [0.0, 5.0, 0.0],
+  "scale": [2.0, 2.0, 2.0]
+}'
+
+COMMON ERRORS:
+❌ mutate-component 12345 Transform '{"translation": [0,0,0]}'
+   Error: Component type not found (missing full path)
+✅ Use fully qualified name from 'list' command
+
+❌ mutate-component 12345 bevy_core::name::Name '{"name": "NewName"}'
+   Error: Field 'name' does not exist (Name is a tuple struct)
+✅ mutate-component 12345 bevy_core::name::Name '"NewName"'
+
+❌ Conflicting field types
+   '{"translation": "0,0,0"}'  # String instead of array
+✅ Match exact field types from schema
 
 NOTES:
-  - Only specified fields are updated
-  - Other fields retain their current values
-  - Component must exist on entity
-  - Custom components need #[derive(Serialize, Deserialize)] and #[reflect(Serialize, Deserialize)]
-    (Bevy's built-in components already have these)
+- Only specified fields are updated
+- Other fields retain their current values
+- Component must exist on entity
+- Use 'insert' to add new components
+- Custom components need #[derive(Serialize, Deserialize)] and #[reflect(Serialize, Deserialize)]
+  (Bevy's built-in components already have these)
+
+MERGE BEHAVIOR:
+Original Transform:
+  {
+    "translation": [0.0, 0.0, 0.0],
+    "rotation": [0.0, 0.0, 0.0, 1.0],
+    "scale": [1.0, 1.0, 1.0]
+  }
+
+After mutate with {"translation": [5.0, 0.0, 0.0]}:
+  {
+    "translation": [5.0, 0.0, 0.0],  # Updated
+    "rotation": [0.0, 0.0, 0.0, 1.0], # Unchanged
+    "scale": [1.0, 1.0, 1.0]          # Unchanged
+  }
+
+WORKFLOW EXAMPLE:
+# Check current component state
+$ {{BIN_NAME}} get 12345 bevy_transform::components::transform::Transform
+# Update specific fields
+$ {{BIN_NAME}} mutate-component 12345 bevy_transform::components::transform::Transform '{
+  "translation": [0.0, 10.0, 0.0]
+}'
+# Verify the change
+$ {{BIN_NAME}} get 12345 bevy_transform::components::transform::Transform
+
+# Animate a light
+$ {{BIN_NAME}} --managed --commands '
+  mutate_component 12345 bevy_pbr::light::point_light::PointLight {"intensity": 500.0};
+  mutate_component 12345 bevy_pbr::light::point_light::PointLight {"intensity": 1000.0};
+  mutate_component 12345 bevy_pbr::light::point_light::PointLight {"intensity": 1500.0}
+'
+
+See also: get, insert, remove, mutate_resource

@@ -1,23 +1,75 @@
-Description: Remove a component from an entity
+========================================
+COMMAND: remove (bevy/remove)
+========================================
 
-Usage:
+DESCRIPTION:
+Remove a specific component from an entity (entity continues to exist)
+
+USAGE:
   {{BIN_NAME}} remove <ENTITY_ID> <COMPONENT>
   {{BIN_NAME}} --managed --commands 'remove <ENTITY_ID> <COMPONENT>'
 
-Arguments:
+ARGUMENTS:
   ENTITY_ID - The numeric ID of the entity
   COMPONENT - Fully qualified component type name to remove
 
-Examples:
-  # Remove Name component from entity 12345
-  {{BIN_NAME}} remove 12345 bevy_core::name::Name
+RETURNS:
+Success confirmation or error message
 
-  # Remove PointLight component
-  {{BIN_NAME}} remove 12345 bevy_pbr::light::point_light::PointLight
+EXAMPLE OUTPUT:
+{"status": "ok"}
 
-Returns: Success confirmation or error message
+EXAMPLES:
+# Remove Name component from entity 12345
+$ {{BIN_NAME}} remove 12345 bevy_core::name::Name
+
+# Remove PointLight component
+$ {{BIN_NAME}} remove 12345 bevy_pbr::light::point_light::PointLight
+
+# Remove multiple components in sequence
+$ {{BIN_NAME}} --managed --commands 'remove 12345 bevy_core::name::Name; remove 12345 bevy_pbr::light::point_light::PointLight'
+
+COMMON ERRORS:
+❌ remove 12345 Transform
+   Error: Component type not found (missing full path)
+✅ remove 12345 bevy_transform::components::transform::Transform
+
+❌ remove 12345 bevy_core::name::Name
+   Error: Component does not exist on entity
+✅ Check entity has component first with 'get' or 'list_entity'
+
+❌ Removing required components may break entity behavior
+   Example: Removing Transform from rendered entity
+✅ Understand component dependencies before removal
 
 NOTES:
-  - Component must exist on entity or command will error
-  - Some components may be required by others
-  - Removing Transform may affect entity visibility
+- Component must exist on entity or command will error
+- Some components may be required by others
+- Removing Transform may affect entity visibility
+- Entity continues to exist after component removal
+- Use 'destroy' to remove entire entity
+
+COMPONENT DEPENDENCIES:
+Some components depend on others:
+- GlobalTransform requires Transform
+- Mesh rendering requires Transform + GlobalTransform
+- Lights require Transform for positioning
+
+WORKFLOW EXAMPLE:
+# Check what components an entity has
+$ {{BIN_NAME}} list_entity 12345
+# Remove unnecessary components
+$ {{BIN_NAME}} remove 12345 bevy_core::name::Name
+$ {{BIN_NAME}} remove 12345 my_game::debug::DebugMarker
+# Verify removal
+$ {{BIN_NAME}} list_entity 12345
+
+DIFFERENCES FROM DESTROY:
+- remove: Removes only specified component, entity remains
+- destroy: Removes entire entity and all its components
+
+Example:
+$ {{BIN_NAME}} remove 12345 bevy_core::name::Name  # Entity still exists
+$ {{BIN_NAME}} destroy 12345  # Entity no longer exists
+
+See also: destroy, insert, get, list_entity

@@ -1,42 +1,74 @@
-Description: Query entities that have ALL specified components
+========================================
+COMMAND: query (bevy/query)
+========================================
 
-Usage:
+DESCRIPTION:
+Query entities that have ALL specified components
+
+USAGE:
   {{BIN_NAME}} query <COMPONENT1> [COMPONENT2 ...]
-  {{BIN_NAME}} --managed --commands 'query bevy_transform::components::transform::Transform'
+  {{BIN_NAME}} --managed --commands 'query <COMPONENT1> [COMPONENT2 ...]'
 
-Arguments:
+ARGUMENTS:
   COMPONENT1, COMPONENT2, ... - Fully qualified component type names from 'list' command
 
-Examples:
-  # Find all entities with Transform component
-  {{BIN_NAME}} --managed --commands 'query bevy_transform::components::transform::Transform'
-  
-  # Find entities with both Transform AND Name components
-  {{BIN_NAME}} --managed --commands 'query bevy_transform::components::transform::Transform bevy_ecs::name::Name'
+RETURNS:
+JSON array of entity objects that have ALL specified components
 
-Returns: JSON array of entity objects that have ALL specified components
-
-Example output:
-  [
-    {
-      "entity": 4294967352,
-      "components": {
-        "bevy_transform::components::transform::Transform": {
-          "translation": [0.0, 0.0, 0.0],
-          "rotation": [0.0, 0.0, 0.0, 1.0],
-          "scale": [1.0, 1.0, 1.0]
-        }
+EXAMPLE OUTPUT:
+[
+  {
+    "entity": 4294967352,
+    "components": {
+      "bevy_transform::components::transform::Transform": {
+        "translation": [0.0, 0.0, 0.0],
+        "rotation": [0.0, 0.0, 0.0, 1.0],
+        "scale": [1.0, 1.0, 1.0]
       }
     }
-  ]
+  }
+]
+
+EXAMPLES:
+# Find all entities with Transform component
+$ {{BIN_NAME}} query bevy_transform::components::transform::Transform
+
+# Find entities with both Transform AND Name components
+$ {{BIN_NAME}} query bevy_transform::components::transform::Transform bevy_core::name::Name
+
+# Query in managed mode
+$ {{BIN_NAME}} --managed --commands 'query bevy_transform::components::transform::Transform'
+
+# Query multiple component types (AND logic)
+$ {{BIN_NAME}} --managed --commands 'query bevy_transform::components::transform::Transform bevy_core::name::Name bevy_pbr::light::PointLight'
 
 COMMON ERRORS:
-  ❌ query Transform
-     Error: Component 'Transform' not found
-  ✅ query bevy_transform::components::transform::Transform
+❌ {{BIN_NAME}} query Transform
+   Error: Component 'Transform' not found (must be fully qualified)
 
-TIP: Always use full component names from the 'list' command!
+✅ {{BIN_NAME}} query bevy_transform::components::transform::Transform
+
+❌ {{BIN_NAME}} query "Transform"
+   Error: Component type must be exact as shown in 'list' output
+
+✅ {{BIN_NAME}} query bevy_transform::components::transform::Transform
 
 NOTES:
-  - Custom components need #[derive(Serialize)] and #[reflect(Serialize)] to appear in results
-    (Bevy's built-in components already have these)
+- Query uses AND logic - entities must have ALL specified components
+- Always use full component names from the 'list' command
+- Custom components need #[derive(Serialize)] and #[reflect(Serialize)] to appear in results
+- Bevy's built-in components already have the required derives
+- Results include all serializable components on each entity, not just queried ones
+
+WORKFLOW EXAMPLE:
+# Find all lights in the scene and modify them
+$ {{BIN_NAME}} --managed --commands 'query bevy_pbr::light::PointLight | jq -r ".[].entity"'
+# Use the entity IDs to modify light properties
+
+# Complex query workflow - find named transforms
+$ {{BIN_NAME}} --managed --commands 'list,query bevy_transform::components::transform::Transform bevy_core::name::Name,shutdown'
+
+# Count entities with specific components
+$ {{BIN_NAME}} query bevy_transform::components::transform::Transform | jq 'length'
+
+See also: list, get, list_entities

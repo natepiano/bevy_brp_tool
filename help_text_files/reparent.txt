@@ -1,23 +1,97 @@
-Description: Change the parent of an entity in the hierarchy
+========================================
+COMMAND: reparent (bevy/reparent)
+========================================
 
-Usage:
+DESCRIPTION:
+Change the parent of an entity in the hierarchy, affecting transform inheritance
+
+USAGE:
   {{BIN_NAME}} reparent <CHILD_ID> <PARENT_ID>
   {{BIN_NAME}} --managed --commands 'reparent <CHILD_ID> <PARENT_ID>'
 
-Arguments:
+ARGUMENTS:
   CHILD_ID - The entity ID to reparent
   PARENT_ID - The new parent entity ID (use 'null' for no parent)
 
-Examples:
-  # Make entity 12345 a child of entity 67890
-  {{BIN_NAME}} reparent 12345 67890
+RETURNS:
+Success confirmation or error message
 
-  # Remove parent (make entity top-level)
-  {{BIN_NAME}} reparent 12345 null
+EXAMPLE OUTPUT:
+{"status": "ok"}
 
-Returns: Success confirmation or error message
+EXAMPLES:
+# Make entity 12345 a child of entity 67890
+$ {{BIN_NAME}} reparent 12345 67890
+
+# Remove parent (make entity top-level)
+$ {{BIN_NAME}} reparent 12345 null
+
+# Move entity to different parent
+$ {{BIN_NAME}} reparent 12345 99999
+
+COMMON ERRORS:
+❌ reparent 12345 12345
+   Error: Cannot make entity its own parent (circular reference)
+✅ Use a different parent entity
+
+❌ reparent 12345 12346 (where 12346 is child of 12345)
+   Error: Would create circular hierarchy
+✅ Ensure new parent is not a descendant of the child
+
+❌ reparent 99999 12345
+   Error: Child entity does not exist
+✅ Verify both entities exist with list_entities
 
 NOTES:
-  - Both entities must exist
-  - Creates parent-child transform relationship
-  - Child inherits parent's transform
+- Both entities must exist
+- Creates parent-child transform relationship
+- Child inherits parent's transform
+- Transform inheritance is automatic in Bevy
+- GlobalTransform = Parent GlobalTransform * Local Transform
+- Circular parent relationships are prevented
+
+TRANSFORM INHERITANCE:
+When entity B is child of entity A:
+- B's world position = A's position + B's local position
+- B's world rotation = A's rotation * B's local rotation
+- B's world scale = A's scale * B's local scale
+
+Example:
+  Parent at position (10, 0, 0)
+  Child with local position (5, 0, 0)
+  Child's world position becomes (15, 0, 0)
+
+VISUAL HIERARCHY EXAMPLES:
+Before reparenting:
+  Scene Root
+    ├─ Camera (12345)
+    ├─ Light (12346)
+    └─ Cube (12347)
+
+After 'reparent 12346 12347':
+  Scene Root
+    ├─ Camera (12345)
+    └─ Cube (12347)
+        └─ Light (12346)  # Now moves with Cube
+
+WORKFLOW EXAMPLE:
+# Create a scene hierarchy
+$ {{BIN_NAME}} spawn '{"bevy_core::name::Name": "Parent"}'
+# Returns: 4294967357
+$ {{BIN_NAME}} spawn '{"bevy_core::name::Name": "Child1"}'
+# Returns: 4294967358
+$ {{BIN_NAME}} spawn '{"bevy_core::name::Name": "Child2"}'
+# Returns: 4294967359
+
+# Build hierarchy
+$ {{BIN_NAME}} reparent 4294967358 4294967357
+$ {{BIN_NAME}} reparent 4294967359 4294967357
+
+# Verify hierarchy
+$ {{BIN_NAME}} list_entity 4294967357
+# Shows children: [4294967358, 4294967359]
+
+# Reorganize - move Child2 under Child1
+$ {{BIN_NAME}} reparent 4294967359 4294967358
+
+See also: spawn, list_entity, destroy, insert

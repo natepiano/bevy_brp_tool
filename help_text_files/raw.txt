@@ -3,60 +3,69 @@ COMMAND: raw
 ========================================
 
 DESCRIPTION:
-The 'raw' command completely bypasses CLI parsing and sends any command directly to the server. This is the ultimate escape hatch for power users and debugging.
+Bypasses CLI parsing and sends commands directly to the server - the ultimate escape hatch for power users
+
+USAGE:
+  {{BIN_NAME}} raw <method_name> [arguments...]
+
+ARGUMENTS:
+  method_name - Any BRP method name (validated by server, not CLI)
+  arguments - Optional JSON arguments for the method
+
+RETURNS:
+Raw JSON response from the server (unformatted)
+
+EXAMPLE OUTPUT:
+{"result":{"components":["bevy_transform::components::transform::Transform",...]}}
+
+EXAMPLES:
+# Valid BRP commands
+$ {{BIN_NAME}} raw bevy/list
+$ {{BIN_NAME}} raw bevy/registry/schema
+$ {{BIN_NAME}} raw rpc.discover
+
+# With parameters
+$ {{BIN_NAME}} raw bevy/get '{"entity": 12345, "component": "bevy_core::name::Name"}'
+$ {{BIN_NAME}} raw bevy/spawn '{"bevy_transform::components::transform::Transform": {"translation": [0,0,0]}}'
+
+# Custom app methods
+$ {{BIN_NAME}} raw my_game/debug_info
+$ {{BIN_NAME}} raw my_game/set_difficulty '{"level": "nightmare"}'
+
+COMMON ERRORS:
+❌ raw completely_made_up_method
+   Error: Method not found (server response)
+✅ Use 'methods' to discover available methods
+
+❌ raw bevy/get
+   Error: Missing required parameters
+✅ raw bevy/get '{"entity": 12345, "component": "..."}'
+
+NOTES:
+- NO validation - passes everything straight to the server
+- NO CLI error checking - server decides what's valid  
+- NO formatting - raw JSON responses
+- NO safety nets - you get exactly what you ask for
+- Perfect for experimentation and debugging
 
 WHY USE RAW?
 1. **Experimentation**: Try methods that might exist but aren't in our CLI
 2. **Future-proofing**: Use new BRP methods before we add CLI support
-3. **Debugging**: Send malformed requests to see how the server handles them
-4. **Advanced usage**: Access experimental features or complex method names
+3. **Debugging**: Send malformed requests to test server handling
+4. **Advanced usage**: Access experimental or complex method names
 5. **Custom methods**: Call methods added by your specific application
 
-USAGE:
-    {{BIN_NAME}} raw <method_name> [arguments...]
+WORKFLOW EXAMPLE:
+# Discover available methods
+$ {{BIN_NAME}} methods
+# Try a new method not yet in CLI
+$ {{BIN_NAME}} raw bevy/experimental/new_feature
+# Test error handling
+$ {{BIN_NAME}} raw invalid/method/name
 
-BEHAVIOR:
-- NO validation - passes everything straight to the server
-- NO CLI error checking - server decides what's valid
-- NO formatting - raw JSON responses
-- NO safety nets - you get exactly what you ask for
+COMPARISON:
+- {{BIN_NAME}} list → CLI wrapper for bevy/list
+- {{BIN_NAME}} bevy/list → Direct command (convenience)
+- {{BIN_NAME}} raw bevy/list → Explicit bypass (same result)
 
-EXAMPLES:
-
-Valid BRP commands:
-    {{BIN_NAME}} raw bevy/list
-    {{BIN_NAME}} raw bevy/registry/schema
-    {{BIN_NAME}} raw rpc.discover
-
-Invalid/experimental commands (will return server errors):
-    {{BIN_NAME}} raw completely_made_up_method
-    {{BIN_NAME}} raw foo/bar/baz
-    {{BIN_NAME}} raw "weird method name with spaces"
-
-With parameters:
-    {{BIN_NAME}} raw bevy/get '{"entity": 12345, "component": "bevy_core::name::Name"}'
-    {{BIN_NAME}} raw bevy/spawn '{"bevy_transform::components::transform::Transform": {"translation": [0,0,0]}}'
-
-Custom app methods:
-    {{BIN_NAME}} raw my_game/debug_info
-    {{BIN_NAME}} raw my_game/set_difficulty '{"level": "nightmare"}'
-
-COMPARISON WITH OTHER APPROACHES:
-- `{{BIN_NAME}} list` → Uses our CLI wrapper for bevy/list
-- `{{BIN_NAME}} bevy/list` → Direct external command (convenience shortcut)  
-- `{{BIN_NAME}} raw bevy/list` → Explicit raw bypass (same result, different intent)
-
-DISCOVERING METHODS:
-Use 'methods' command to find available server methods:
-    $ {{BIN_NAME}} methods
-    # Shows all available methods including custom ones
-    
-    $ {{BIN_NAME}} raw new_method_you_discovered
-
-ERROR HANDLING:
-- Method doesn't exist → Server returns "method not found" 
-- Invalid parameters → Server returns parameter validation error
-- Server unreachable → CLI returns connection error
-- No command specified → CLI returns "requires at least method name"
-
-The raw command is intentionally "dumb" - it trusts you know what you're doing and lets the server validate everything. Perfect for power users and debugging scenarios.
+See also: methods, app, help

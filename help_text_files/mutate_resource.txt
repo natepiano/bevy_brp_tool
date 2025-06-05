@@ -1,24 +1,95 @@
-Description: Modify specific fields of a resource
+========================================
+COMMAND: mutate_resource (bevy/mutate_resource)
+========================================
 
-Usage:
+DESCRIPTION:
+Modify specific fields of a resource without replacing the entire resource
+
+USAGE:
   {{BIN_NAME}} mutate-resource <RESOURCE_TYPE> '<JSON_PATCH>'
   {{BIN_NAME}} --managed --commands 'mutate_resource <RESOURCE_TYPE> <JSON_PATCH>'
 
-Arguments:
+ARGUMENTS:
   RESOURCE_TYPE - Fully qualified resource type name
   JSON_PATCH - Partial resource data to update
 
-Examples:
-  # Update camera skybox brightness
-  {{BIN_NAME}} mutate-resource hana::camera::camera_config::CameraConfig '{
-    "skybox_brightness": 800.0
-  }'
+RETURNS:
+Success confirmation or error message
 
-Returns: Success confirmation or error message
+EXAMPLE OUTPUT:
+{"status": "ok"}
+
+EXAMPLES:
+# Update camera skybox brightness
+$ {{BIN_NAME}} mutate-resource hana::camera::camera_config::CameraConfig '{
+  "skybox_brightness": 800.0
+}'
+
+# Update game difficulty
+$ {{BIN_NAME}} mutate-resource my_game::GameSettings '{
+  "difficulty": "nightmare"
+}'
+
+# Update multiple fields
+$ {{BIN_NAME}} mutate-resource my_game::GameState '{
+  "score": 5000,
+  "level": 10
+}'
+
+COMMON ERRORS:
+❌ mutate-resource GameSettings '{"difficulty": "hard"}'
+   Error: Resource type not found (missing full path)
+✅ Use fully qualified type name
+
+❌ mutate-resource my_game::NonExistentResource '{...}'
+   Error: Resource does not exist in world
+✅ Resource must be inserted first
+
+❌ Type mismatches in JSON patch
+   Error: Failed to merge resource data
+✅ Ensure field types match schema
 
 NOTES:
-  - Only specified fields are updated
-  - Resource must exist in the world
-  - Partial updates preserve other fields
-  - Custom resources need #[derive(Serialize, Deserialize)] and #[reflect(Serialize, Deserialize)]
-    (Bevy's built-in resources already have these)
+- Only specified fields are updated
+- Resource must exist in the world
+- Partial updates preserve other fields
+- Use 'insert_resource' to create new resources
+- Custom resources need #[derive(Serialize, Deserialize)] and #[reflect(Serialize, Deserialize)]
+  (Bevy's built-in resources already have these)
+
+MERGE BEHAVIOR:
+Original GameState:
+  {
+    "score": 1000,
+    "level": 5,
+    "lives": 3,
+    "game_over": false
+  }
+
+After mutate with {"score": 2000, "level": 6}:
+  {
+    "score": 2000,      # Updated
+    "level": 6,         # Updated
+    "lives": 3,         # Preserved
+    "game_over": false  # Preserved
+  }
+
+WORKFLOW EXAMPLE:
+# Check current resource state
+$ {{BIN_NAME}} get-resource my_game::GameSettings
+# Update specific settings
+$ {{BIN_NAME}} mutate-resource my_game::GameSettings '{
+  "sound_volume": 0.5,
+  "music_enabled": false
+}'
+# Verify changes
+$ {{BIN_NAME}} get-resource my_game::GameSettings
+
+# Progressive updates during gameplay
+$ {{BIN_NAME}} --managed --commands '
+  mutate_resource my_game::GameState {"score": 100};
+  mutate_resource my_game::GameState {"score": 200};
+  mutate_resource my_game::GameState {"level": 2}
+'
+
+See also: get_resource, insert_resource, remove_resource, mutate_component

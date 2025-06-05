@@ -1,26 +1,88 @@
-Description: Insert or update a resource in the world
+========================================
+COMMAND: insert_resource (bevy/insert_resource)
+========================================
 
-Usage:
+DESCRIPTION:
+Insert or update a resource (global singleton) in the world
+
+USAGE:
   {{BIN_NAME}} insert-resource '<JSON_OBJECT>'
   {{BIN_NAME}} --managed --commands 'insert_resource <JSON_OBJECT>'
 
-Arguments:
+ARGUMENTS:
   JSON_OBJECT - Object with resource type as key and data as value
 
-Examples:
-  # Insert a custom resource
-  {{BIN_NAME}} insert-resource '{
-    "my_game::resources::GameSettings": {
-      "difficulty": "hard",
-      "sound_volume": 0.8
-    }
-  }'
+RETURNS:
+Success confirmation or error message
 
-Returns: Success confirmation or error message
+EXAMPLE OUTPUT:
+{"status": "ok"}
+
+EXAMPLES:
+# Insert a custom resource
+$ {{BIN_NAME}} insert-resource '{
+  "my_game::resources::GameSettings": {
+    "difficulty": "hard",
+    "sound_volume": 0.8
+  }
+}'
+
+# Insert a simple resource
+$ {{BIN_NAME}} insert-resource '{
+  "my_game::Score": {
+    "points": 1000,
+    "level": 5
+  }
+}'
+
+COMMON ERRORS:
+❌ insert-resource '{"GameSettings": {...}}'
+   Error: Resource type not found (missing full path)
+✅ Use fully qualified type name
+
+❌ insert-resource 'my_game::GameSettings: {...}'
+   Error: Invalid JSON format
+✅ insert-resource '{"my_game::GameSettings": {...}}'
+
+❌ Missing required fields
+   Error: Failed to deserialize resource
+✅ Provide all required fields with correct types
 
 NOTES:
-  - If resource exists, it will be replaced
-  - Resource type must be registered in the app
-  - Only one resource per type can exist
-  - Custom resources need #[derive(Deserialize)] and #[reflect(Deserialize)]
-    (Bevy's built-in resources already have these)
+- If resource exists, it will be replaced entirely
+- Resource type must be registered in the app
+- Only one resource per type can exist
+- Custom resources need #[derive(Deserialize)] and #[reflect(Deserialize)]
+  (Bevy's built-in resources already have these)
+
+COMPARISON WITH MUTATE_RESOURCE:
+- insert_resource: Replaces entire resource
+- mutate_resource: Updates only specified fields
+
+Example:
+Original: {"score": 100, "lives": 3}
+insert_resource '{"my_game::GameState": {"score": 200}}'
+Result: {"score": 200}  # Lives field lost!
+
+mutate_resource 'my_game::GameState' '{"score": 200}'
+Result: {"score": 200, "lives": 3}  # Lives preserved
+
+WORKFLOW EXAMPLE:
+# Initialize game state
+$ {{BIN_NAME}} insert-resource '{
+  "my_game::GameState": {
+    "score": 0,
+    "level": 1,
+    "lives": 3,
+    "game_over": false
+  }
+}'
+
+# Later, update specific fields
+$ {{BIN_NAME}} mutate-resource my_game::GameState '{"score": 100}'
+$ {{BIN_NAME}} mutate-resource my_game::GameState '{"level": 2}'
+
+# Check current state
+$ {{BIN_NAME}} get-resource my_game::GameState
+
+See also: get_resource, mutate_resource, remove_resource, list_resources

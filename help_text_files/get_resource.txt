@@ -1,27 +1,70 @@
-Description: Get the current value of a resource
+========================================
+COMMAND: get_resource (bevy/get_resource)
+========================================
 
-Usage:
+DESCRIPTION:
+Get the current value of a resource (global singleton) from the world
+
+USAGE:
   {{BIN_NAME}} get-resource <RESOURCE_TYPE>
   {{BIN_NAME}} --managed --commands 'get_resource <RESOURCE_TYPE>'
 
-Arguments:
+ARGUMENTS:
   RESOURCE_TYPE - Fully qualified resource type name
 
-Examples:
-  # Get current time resource
-  {{BIN_NAME}} get-resource bevy_time::time::Time
+RETURNS:
+JSON object with the resource data
 
-Returns: JSON object with the resource data
+EXAMPLE OUTPUT:
+{
+  "delta_seconds": 0.016,
+  "elapsed_seconds": 42.5,
+  "frame_count": 2550
+}
 
-Example output for Time:
-  {
-    "delta_seconds": 0.016,
-    "elapsed_seconds": 42.5,
-    "frame_count": 2550
-  }
+EXAMPLES:
+# Get current time resource
+$ {{BIN_NAME}} get-resource bevy_time::time::Time
+
+# Get window information
+$ {{BIN_NAME}} get-resource bevy_window::window::Windows
+
+# Get custom game resource
+$ {{BIN_NAME}} get-resource my_game::GameState
+
+COMMON ERRORS:
+❌ get-resource Time
+   Error: Resource type not found (missing full path)
+✅ get-resource bevy_time::time::Time
+
+❌ get-resource bevy_nonexistent::Resource
+   Error: Resource does not exist in world
+✅ Use list_resources to see available resources
 
 NOTES:
-  - Resource must exist or command will error
-  - Some resources may have complex nested structures
-  - Custom resources need #[derive(Serialize)] and #[reflect(Serialize)]
-    (Bevy's built-in resources already have these)
+- Resource must exist or command will error
+- Some resources may have complex nested structures
+- Custom resources need #[derive(Serialize)] and #[reflect(Serialize)]
+  (Bevy's built-in resources already have these)
+- Resources are singletons - only one instance per type
+
+COMPARISON WITH GET:
+- get: Retrieves component data from a specific entity
+- get_resource: Retrieves global resource data (no entity needed)
+
+Example:
+$ {{BIN_NAME}} get 12345 bevy_transform::components::transform::Transform  # Component
+$ {{BIN_NAME}} get-resource bevy_time::time::Time  # Resource
+
+WORKFLOW EXAMPLE:
+# Monitor time progression
+$ {{BIN_NAME}} get-resource bevy_time::time::Time
+# Wait a moment...
+$ {{BIN_NAME}} get-resource bevy_time::time::Time
+# Notice elapsed_seconds has increased
+
+# Check game configuration
+$ {{BIN_NAME}} list_resources | grep -i config
+$ {{BIN_NAME}} get-resource hana::camera::camera_config::CameraConfig
+
+See also: list_resources, mutate_resource, insert_resource, remove_resource

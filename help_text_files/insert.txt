@@ -1,32 +1,69 @@
-Description: Insert a new component into an existing entity
+========================================
+COMMAND: insert (bevy/insert)
+========================================
 
-Usage:
+DESCRIPTION:
+Insert a new component into an existing entity
+
+USAGE:
   {{BIN_NAME}} insert <ENTITY_ID> '<JSON_OBJECT>'
   {{BIN_NAME}} --managed --commands 'insert <ENTITY_ID> <JSON_OBJECT>'
 
-Arguments:
+ARGUMENTS:
   ENTITY_ID - The numeric ID of the entity
   JSON_OBJECT - Component type and data
 
-Examples:
-  # Add a Name component to entity 12345
-  {{BIN_NAME}} insert 12345 '{"bevy_core::name::Name": "MyEntity"}'
+RETURNS:
+Success confirmation or error message
 
-  # Add a PointLight component
-  {{BIN_NAME}} insert 12345 '{
-    "bevy_pbr::light::point_light::PointLight": {
-      "color": [1.0, 1.0, 1.0, 1.0],
-      "intensity": 1000.0,
-      "range": 20.0,
-      "radius": 0.0
-    }
-  }'
+EXAMPLE OUTPUT:
+{"status": "ok"}
 
-Returns: Success confirmation or error message
+EXAMPLES:
+# Add a Name component to entity 12345
+$ {{BIN_NAME}} insert 12345 '{"bevy_core::name::Name": "MyEntity"}'
+
+# Add a PointLight component
+$ {{BIN_NAME}} insert 12345 '{
+  "bevy_pbr::light::point_light::PointLight": {
+    "color": [1.0, 1.0, 1.0, 1.0],
+    "intensity": 1000.0,
+    "range": 20.0,
+    "radius": 0.0
+  }
+}'
+
+COMMON ERRORS:
+❌ insert 99999 '{"bevy_core::name::Name": "Test"}'
+   Error: Entity does not exist
+✅ First spawn entity, then insert components
+
+❌ insert 12345 '{"Name": "Test"}'
+   Error: Component type not found
+✅ insert 12345 '{"bevy_core::name::Name": "Test"}'
+
+❌ insert 12345 '{"bevy_transform::components::transform::Transform": {}}'
+   Error: Missing required fields
+✅ Provide all required fields with proper types
 
 NOTES:
-  - If component already exists, it will be replaced
-  - Component name must be fully qualified
-  - Entity must exist or command will error
-  - Custom components need #[derive(Deserialize)] and #[reflect(Deserialize)]
-    (Bevy's built-in components already have these)
+- If component already exists, it will be replaced
+- Component name must be fully qualified
+- Entity must exist or command will error
+- Custom components need #[derive(Deserialize)] and #[reflect(Deserialize)]
+  (Bevy's built-in components already have these)
+
+WORKFLOW EXAMPLE:
+# Common pattern: spawn entity, then add components
+$ {{BIN_NAME}} spawn '{}'
+# Returns entity ID, e.g., 4294967357
+$ {{BIN_NAME}} insert 4294967357 '{"bevy_core::name::Name": "Player"}'
+$ {{BIN_NAME}} insert 4294967357 '{
+  "bevy_transform::components::transform::Transform": {
+    "translation": [0.0, 0.0, 0.0],
+    "rotation": [0.0, 0.0, 0.0, 1.0],
+    "scale": [1.0, 1.0, 1.0]
+  }
+}'
+
+See also: spawn, mutate_component, remove, get

@@ -1,20 +1,73 @@
-Description: List all component types registered in the Bevy world
+========================================
+COMMAND: list (bevy/list)
+========================================
 
-Usage:
+DESCRIPTION:
+List all component types registered in the Bevy world
+
+USAGE:
   {{BIN_NAME}} list
   {{BIN_NAME}} --managed --commands 'list'
 
-Returns: JSON array of fully qualified component type names
+RETURNS:
+JSON array of fully qualified component type names
 
-Example output:
-  [
-    "bevy_transform::components::transform::Transform",
-    "bevy_transform::components::global_transform::GlobalTransform",
-    "bevy_core::name::Name",
-    "bevy_pbr::light::point_light::PointLight"
-  ]
+EXAMPLE OUTPUT:
+[
+  "bevy_transform::components::transform::Transform",
+  "bevy_transform::components::global_transform::GlobalTransform",
+  "bevy_core::name::Name",
+  "bevy_pbr::light::point_light::PointLight",
+  "bevy_sprite::mesh2d::mesh::Mesh2d",
+  "bevy_render::view::visibility::Visibility"
+]
 
-IMPORTANT:
-  - Returns component TYPES, not entity IDs
-  - Use these exact type names when querying or getting components
-  - Component names must be fully qualified (include module path)
+EXAMPLES:
+# List all component types
+$ {{BIN_NAME}} list
+
+# Filter for specific components using grep
+$ {{BIN_NAME}} list | grep -i transform
+$ {{BIN_NAME}} list | grep bevy_pbr
+
+# Count total registered components
+$ {{BIN_NAME}} list | jq 'length'
+
+COMMON PATTERNS:
+# Find light-related components
+$ {{BIN_NAME}} list | grep -i light
+
+# Find components from your game
+$ {{BIN_NAME}} list | grep my_game
+
+# Save component list for reference
+$ {{BIN_NAME}} list > components.json
+
+NOTES:
+- Returns component TYPES, not entity IDs
+- Use these exact type names when querying or getting components
+- Component names must be fully qualified (include module path)
+- Custom components only appear if registered with app.register_type()
+- List may be very long in complex applications
+
+FULL QUALIFICATION REQUIREMENT:
+Always use the complete path from the list output:
+❌ "Transform"
+❌ "transform::Transform"
+✅ "bevy_transform::components::transform::Transform"
+
+WORKFLOW EXAMPLE:
+# Discover available components
+$ {{BIN_NAME}} list | grep -i camera
+# Use discovered component in query
+$ {{BIN_NAME}} query bevy_render::camera::camera::Camera
+# Get specific component data
+$ {{BIN_NAME}} get 4294967356 bevy_render::camera::camera::Camera
+
+FILTERING TIPS:
+- Use grep -i for case-insensitive search
+- Use jq for JSON processing
+- Pipe to less for pagination: {{BIN_NAME}} list | less
+- Search multiple terms: {{BIN_NAME}} list | grep -E "camera|light"
+
+See also: query, list_entities, list_resources, schema

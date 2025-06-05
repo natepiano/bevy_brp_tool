@@ -1,19 +1,75 @@
-Description: Destroy an entity and all its components
+========================================
+COMMAND: destroy (bevy/destroy)
+========================================
 
-Usage:
+DESCRIPTION:
+Destroy an entity and all its components, removing it completely from the world
+
+USAGE:
   {{BIN_NAME}} destroy <ENTITY_ID>
   {{BIN_NAME}} --managed --commands 'destroy <ENTITY_ID>'
 
-Arguments:
+ARGUMENTS:
   ENTITY_ID - The numeric ID of the entity to destroy
 
-Examples:
-  # Destroy entity 12345
-  {{BIN_NAME}} destroy 12345
+RETURNS:
+Success confirmation or error message
 
-Returns: Success confirmation or error message
+EXAMPLE OUTPUT:
+{"status": "ok"}
+
+EXAMPLES:
+# Destroy entity 12345
+$ {{BIN_NAME}} destroy 12345
+
+# Destroy multiple entities in sequence
+$ {{BIN_NAME}} --managed --commands 'destroy 12345; destroy 12346'
+
+COMMON ERRORS:
+❌ destroy 99999
+   Error: Entity does not exist
+✅ Verify entity exists with query or list_entities first
+
+❌ destroy "entity_name"
+   Error: Invalid entity ID format
+✅ destroy 12345
 
 NOTES:
-  - Destroying a parent entity also destroys all children
-  - Entity ID must exist or command will error
-  - This operation cannot be undone
+- Destroying a parent entity also destroys all children recursively
+- Entity ID must exist or command will error
+- This operation cannot be undone
+- All components are removed before entity destruction
+- Child entities maintain their relative transforms when parent is destroyed
+
+HIERARCHY BEHAVIOR:
+When destroying a parent entity:
+1. All child entities are also destroyed
+2. The destruction is recursive (grandchildren, etc.)
+3. No orphaned entities are left behind
+
+Example hierarchy:
+  Parent (12345)
+    ├─ Child A (12346)
+    │   └─ Grandchild (12348)
+    └─ Child B (12347)
+
+Destroying 12345 will also destroy 12346, 12347, and 12348
+
+WORKFLOW EXAMPLE:
+# Check entity hierarchy before destruction
+$ {{BIN_NAME}} list_entity 12345
+# See it has children: [12346, 12347]
+$ {{BIN_NAME}} destroy 12345
+# All entities (12345, 12346, 12347) are now destroyed
+
+# Safer destruction pattern
+$ {{BIN_NAME}} query bevy_core::name::Name
+$ {{BIN_NAME}} get 4294967355 bevy_core::name::Name
+# Verify this is the entity you want to destroy
+$ {{BIN_NAME}} destroy 4294967355
+
+COMPARISON WITH REMOVE:
+- destroy: Removes entire entity and all components
+- remove: Only removes specific component from entity
+
+See also: spawn, remove, list_entities, list_entity

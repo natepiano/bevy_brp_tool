@@ -1,34 +1,55 @@
-Description: Get component data from a specific entity
+========================================
+COMMAND: get (bevy/get)
+========================================
 
-Usage:
+DESCRIPTION:
+Get component data from a specific entity
+
+USAGE:
   {{BIN_NAME}} get <ENTITY_ID> <COMPONENT>
   {{BIN_NAME}} --managed --commands 'get <ENTITY_ID> <COMPONENT>'
 
-Arguments:
+ARGUMENTS:
   ENTITY_ID - The numeric entity ID (from query results)
   COMPONENT - Fully qualified component type name
 
-Examples:
-  # Get Transform component from entity 12345
-  {{BIN_NAME}} --managed --commands 'get 12345 bevy_transform::components::transform::Transform'
+RETURNS:
+JSON object with the component data
 
-Returns: JSON object with the component data
+EXAMPLE OUTPUT:
+{
+  "translation": [0.0, 5.0, 0.0],
+  "rotation": [0.0, 0.0, 0.0, 1.0],
+  "scale": [1.0, 1.0, 1.0]
+}
 
-Example output:
-  {
-    "translation": [0.0, 5.0, 0.0],
-    "rotation": [0.0, 0.0, 0.0, 1.0],
-    "scale": [1.0, 1.0, 1.0]
-  }
+EXAMPLES:
+# Get Transform component from entity 12345
+$ {{BIN_NAME}} get 12345 bevy_transform::components::transform::Transform
 
-KNOWN LIMITATIONS:
-  - Entity IDs must be u32 (max 4,294,967,295)
-  - Very large entity IDs may cause parsing errors in the CLI
-  - Component name must be fully qualified
-  - Custom components need #[derive(Serialize)] and #[reflect(Serialize)]
-    (Bevy's built-in components already have these)
+# Get Name component
+$ {{BIN_NAME}} --managed --commands 'get 12345 bevy_core::name::Name'
 
 COMMON ERRORS:
-  ❌ get 12345 Transform
-     Error: Component 'Transform' not found
-  ✅ get 12345 bevy_transform::components::transform::Transform
+❌ get 12345 Transform
+   Error: Component 'Transform' not found
+✅ get 12345 bevy_transform::components::transform::Transform
+
+❌ get "entity_name" bevy_core::name::Name
+   Error: Invalid entity ID format
+✅ get 12345 bevy_core::name::Name
+
+NOTES:
+- Entity IDs must be u32 (max 4,294,967,295)
+- Very large entity IDs may cause parsing errors in the CLI
+- Component name must be fully qualified
+- Custom components need #[derive(Serialize)] and #[reflect(Serialize)]
+  (Bevy's built-in components already have these)
+
+WORKFLOW EXAMPLE:
+# Find entities with a component, then get specific data
+$ {{BIN_NAME}} query bevy_core::name::Name
+$ {{BIN_NAME}} get 4294967355 bevy_transform::components::transform::Transform
+$ {{BIN_NAME}} get 4294967355 bevy_core::name::Name
+
+See also: query, list_entity, insert, mutate_component

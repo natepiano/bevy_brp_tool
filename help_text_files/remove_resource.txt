@@ -1,19 +1,59 @@
-Description: Remove a resource from the world
+========================================
+COMMAND: remove_resource (bevy/remove_resource)
+========================================
 
-Usage:
+DESCRIPTION:
+Remove a resource from the world entirely
+
+USAGE:
   {{BIN_NAME}} remove-resource <RESOURCE_TYPE>
   {{BIN_NAME}} --managed --commands 'remove_resource <RESOURCE_TYPE>'
 
-Arguments:
+ARGUMENTS:
   RESOURCE_TYPE - Fully qualified resource type name
 
-Examples:
-  # Remove a custom resource
-  {{BIN_NAME}} remove-resource my_game::resources::GameSettings
+RETURNS:
+Success confirmation or error message
 
-Returns: Success confirmation or error message
+EXAMPLE OUTPUT:
+{"status": "ok"}
+
+EXAMPLES:
+# Remove a custom resource
+$ {{BIN_NAME}} remove-resource my_game::resources::GameSettings
+
+# Remove temporary debug resource
+$ {{BIN_NAME}} remove-resource my_game::debug::DebugOverlay
+
+COMMON ERRORS:
+❌ remove-resource GameSettings
+   Error: Resource type not found (missing full path)
+✅ remove-resource my_game::GameSettings
+
+❌ remove-resource bevy_time::time::Time
+   Error: Cannot remove critical system resource
+✅ Only remove user-defined resources
+
+❌ remove-resource my_game::NonExistentResource
+   Error: Resource does not exist in world
+✅ Check with list_resources first
 
 NOTES:
-  - Resource must exist or command will error
-  - Some resources may be required by systems
-  - Removing critical resources may cause errors
+- Resource must exist or command will error
+- Some resources may be required by systems
+- Removing critical resources may cause errors
+- Once removed, systems expecting the resource may panic
+- Consider the impact before removing resources
+
+WORKFLOW EXAMPLE:
+# Check what resources exist
+$ {{BIN_NAME}} list_resources | grep my_game
+
+# Remove temporary resources
+$ {{BIN_NAME}} remove-resource my_game::debug::PerformanceStats
+$ {{BIN_NAME}} remove-resource my_game::tutorial::TutorialState
+
+# Verify removal
+$ {{BIN_NAME}} list_resources | grep my_game
+
+See also: insert_resource, get_resource, list_resources, mutate_resource

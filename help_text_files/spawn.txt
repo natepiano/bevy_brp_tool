@@ -1,43 +1,72 @@
-Description: Spawn a new entity with specified components
+========================================
+COMMAND: spawn (bevy/spawn)
+========================================
 
-Usage:
+DESCRIPTION:
+Spawn a new entity with specified components
+
+USAGE:
   {{BIN_NAME}} spawn '<JSON_OBJECT>'
   {{BIN_NAME}} --managed --commands 'spawn <JSON_OBJECT>'
 
-Arguments:
+ARGUMENTS:
   JSON_OBJECT - Object where keys are component types and values are component data
 
-Examples:
-  # Spawn entity with Transform and Name
-  {{BIN_NAME}} spawn '{
+RETURNS:
+JSON object with the new entity ID
+
+EXAMPLE OUTPUT:
+{"entity": 24680}
+
+EXAMPLES:
+# Spawn entity with Transform and Name
+$ {{BIN_NAME}} spawn '{
     "bevy_transform::components::transform::Transform": {
       "translation": [0.0, 0.0, 0.0],
       "rotation": [0.0, 0.0, 0.0, 1.0],
       "scale": [1.0, 1.0, 1.0]
     },
-    "bevy_ecs::name::Name": "MyEntity"
+    "bevy_core::name::Name": "MyEntity"
   }'
 
-Shell escaping for complex JSON:
-  # Using heredoc for complex JSON
-  {{BIN_NAME}} spawn "$(cat <<'EOF'
-  {
-    "bevy_transform::components::transform::Transform": {
-      "translation": [10.0, 0.0, 0.0],
-      "rotation": [0.0, 0.0, 0.0, 1.0],
-      "scale": [2.0, 2.0, 2.0]
-    }
+# Using heredoc for complex JSON
+$ {{BIN_NAME}} spawn "$(cat <<'EOF'
+{
+  "bevy_transform::components::transform::Transform": {
+    "translation": [10.0, 0.0, 0.0],
+    "rotation": [0.0, 0.0, 0.0, 1.0],
+    "scale": [2.0, 2.0, 2.0]
   }
-  EOF
-  )"
+}
+EOF
+)"
 
-Returns: JSON object with the new entity ID
+# Spawn multiple entities in sequence
+$ {{BIN_NAME}} --managed --commands 'spawn {"bevy_core::name::Name": "Entity1"},spawn {"bevy_core::name::Name": "Entity2"}'
 
-Example output:
-  {"entity": 24680}
+COMMON ERRORS:
+❌ {{BIN_NAME}} spawn '{"Name": "MyEntity"}'
+   Error: Component type must be fully qualified
+
+✅ {{BIN_NAME}} spawn '{"bevy_core::name::Name": "MyEntity"}'
+
+❌ {{BIN_NAME}} spawn {"bevy_core::name::Name": "MyEntity"}
+   Error: JSON must be quoted in shell
+
+✅ {{BIN_NAME}} spawn '{"bevy_core::name::Name": "MyEntity"}'
 
 NOTES:
-  - Component names must be fully qualified
-  - JSON must be properly escaped in shell
-  - Custom components need #[derive(Deserialize)] and #[reflect(Deserialize)]
-    (Bevy's built-in components already have these)
+- Component names must be fully qualified (e.g., bevy_transform::components::transform::Transform)
+- JSON must be properly escaped in shell
+- Custom components need #[derive(Deserialize)] and #[reflect(Deserialize)]
+- Bevy's built-in components already have the required derives
+- Entity ID returned can be used with other commands
+
+WORKFLOW EXAMPLE:
+# Spawn entity, modify it, then destroy it
+$ {{BIN_NAME}} --managed --commands 'spawn {"bevy_core::name::Name": "TestEntity"},get 24680,insert 24680 {"bevy_transform::components::transform::Transform": {"translation": [5.0, 0.0, 0.0]}},destroy 24680'
+
+# Create parent-child hierarchy
+$ {{BIN_NAME}} --managed --commands 'spawn {"bevy_core::name::Name": "Parent"},spawn {"bevy_core::name::Name": "Child"},reparent 24681 24680'
+
+See also: insert, get, destroy, reparent
