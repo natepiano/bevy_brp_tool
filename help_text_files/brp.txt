@@ -1,8 +1,7 @@
 ========================================
-BEVY REMOTE PROTOCOL (BRP) CONFIGURATION
+OPTION: --brp (-b)
 ========================================
-
-Configure your Bevy app to work with BRP and the {{BIN_NAME}} command-line tool.
+Show BRP configuration requirements
 
 BASIC SETUP
 ===========

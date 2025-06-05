@@ -1,16 +1,31 @@
-Build profile to use when building/running your app.
+========================================
+OPTION: --profile (-P)
+========================================
+Build profile to use [default: debug]
 
-Common profiles:
-- debug (default): Fast compilation, slower runtime, includes debug symbols
-- release: Optimized compilation, faster runtime, minimal debug info
-- dev: Usually an alias for debug
-- prod: Usually an alias for release
+USAGE:
+  {{BIN_NAME}} --profile <PROFILE>
+  {{BIN_NAME}} -P <PROFILE>
 
-The profile must match what you used to build your binary. For example:
-- If you ran `cargo build --release`, use `--profile release`
-- If you ran `cargo build` (debug mode), use `--profile debug` or omit this flag
+DESCRIPTION:
+Specifies which build profile to use when auto-detecting apps.
+Must match how your binary was built.
 
-Usage examples:
-  brp --profile release ready
-  brp -P debug spawn '{"Transform": {"translation": [0,0,0]}}'
-  brp --profile prod list
+COMMON PROFILES:
+  - debug (default): Fast compile, slow runtime
+  - release: Slow compile, fast runtime
+  - dev: Usually alias for debug
+  - prod: Usually alias for release
+
+EXAMPLES:
+  {{BIN_NAME}} -P release ready
+  {{BIN_NAME}} --profile debug list
+  {{BIN_NAME}} -d --profile release
+
+NOTES:
+  - If you built with `cargo build --release`, use `-P release`
+  - If you built with `cargo build`, use `-P debug` or omit
+  - Only affects app auto-detection paths
+
+See also:
+  --app

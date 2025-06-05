@@ -1,27 +1,31 @@
+========================================
+OPTION: --managed-commands (-m)
+========================================
 Start app and execute commands directly (comma-separated)
 
+USAGE:
+  {{BIN_NAME}} --managed-commands '<commands>'
+  {{BIN_NAME}} -m '<commands>'
+
+DESCRIPTION:
+Automatically starts app, executes commands in sequence, then exits.
+Perfect for automated testing and CI/CD workflows.
+
 SYNTAX:
-  --managed-commands '<command1>,<command2>,<command3>'
+  - Commands separated by commas
+  - JSON commas inside {} are preserved
+  - Use wait:N for N-second delays
 
 EXAMPLES:
-  --managed-commands 'list'
-  --managed-commands 'ready,list,shutdown'
-  --managed-commands 'spawn {"bevy_core::name::Name": "Test"}'
-  --managed-commands 'wait:2,screenshot /tmp/test.png,shutdown'
-
-APP DETECTION:
-  When --app is not specified, {{BIN_NAME}} will auto-detect and use:
-Use '{{BIN_NAME}} --detect' to see what app would be detected.
-
-FEATURES:
-  - Commands execute in sequence
-  - App starts automatically and shuts down when done
-  - Use wait:N to pause N seconds between commands
-  - JSON commas inside {} are preserved
-  - Both short (list) and full (bevy/list) command names work
-
-
+  {{BIN_NAME}} -m 'list'
+  {{BIN_NAME}} -m 'ready,list,shutdown'
+  {{BIN_NAME}} -m 'spawn {"bevy_core::name::Name": "Test"}'
+  {{BIN_NAME}} -m 'wait:2,screenshot /tmp/test.png,shutdown'
 
 NOTES:
-  - Use --detached if you want to issue commands one at a time against a running app
-  - Use --help-for <command> for detailed help on specific commands.
+  - App auto-detected if --app not specified
+  - Cannot combine with --detached
+  - Use --help-for <command> for command details
+
+See also:
+  --detached, --agent, --app

@@ -1,14 +1,15 @@
+========================================
+OPTION: --info (-i)
+========================================
 Show information about the current detached session
 
 USAGE:
   {{BIN_NAME}} --info
+  {{BIN_NAME}} -i
 
-OUTPUT:
-  Shows JSON with session details:
-  - pid: Process ID of the detached app
-  - port: Port the app is listening on
-  - log_file: Path to the session log file
-  - start_time: When the session was started
+DESCRIPTION:
+Displays JSON with detached session details including process ID,
+port, log file path, and start time.
 
 EXAMPLE:
   $ {{BIN_NAME}} --info
@@ -20,6 +21,8 @@ EXAMPLE:
   }
 
 NOTES:
-  - Returns error if no detached session is found
-  - Only shows info for sessions on the specified port
-  - Use with --port to check specific ports
+  - Returns error if no session found
+  - Use with --port for specific ports
+
+See also:
+  --detached, --cleanup-logs

@@ -1,4 +1,7 @@
-BRP Tool Instructions for Coding Agents
+========================================
+OPTION: --agent (-A)
+========================================
+Show instructions for coding agents
 
 KEY INSIGHT: Non-Blocking Execution Modes
 =========================================

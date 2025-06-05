@@ -1,3 +1,6 @@
+========================================
+OPTION: --port (-p)
+========================================
 Port to connect to [default: 15702]
 
 USAGE:
@@ -5,25 +8,21 @@ USAGE:
   {{BIN_NAME}} -p <PORT> <command>
 
 DESCRIPTION:
-  Specifies which port to use for BRP communication.
-  Must match the port configured in your Bevy app.
+Specifies which port to use for BRP communication.
+Must match the port configured in your Bevy app.
 
 EXAMPLES:
-  {{BIN_NAME}} --port 15703 list
-  {{BIN_NAME}} -p 8080 ready
-  {{BIN_NAME}} --detached --port 15703
-  {{BIN_NAME}} --port 15703 --info
+  {{BIN_NAME}} -p 15703 list
+  {{BIN_NAME}} --port 8080 ready
+  {{BIN_NAME}} -d --port 15703
 
-DEFAULT BEHAVIOR:
-  - Uses port 15702 if not specified
-  - This matches Bevy's RemoteHttpPlugin::default() port exactly
-  - Ensures compatibility with apps using only basic BRP setup
-  - Can be overridden in both app and CLI
+DEFAULT:
+  Port 15702 matches RemoteHttpPlugin::default()
 
-COMMON SCENARIOS:
-  - Multiple apps: Use different ports for each
-  - Firewall issues: Try higher port numbers
-  - Docker/containers: May need port mapping
+COMMON USES:
+  - Multiple apps: Different port per app
+  - Firewall issues: Try higher ports
+  - Docker: May need port mapping
 
-NOTE:
- - use {{BIN_NAME}} --brp to learn more about port configuration with your bevy app
+See also:
+  --brp

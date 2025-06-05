@@ -1,15 +1,20 @@
+========================================
+OPTION: --cleanup-logs (-c)
+========================================
 Clean up inactive session log files from temp directory
 
 USAGE:
   {{BIN_NAME}} --cleanup-logs
   {{BIN_NAME}} -c
 
+DESCRIPTION:
+Scans temp directory for BRP session files and removes only those
+from inactive/dead processes. Active session files are preserved.
+
 BEHAVIOR:
-  - Scans temp directory for BRP session files
-  - Checks each session to see if process is still active
-  - Preserves files from active sessions
-  - Deletes only files from inactive/dead sessions
-  - Shows summary of preserved and cleaned files
+  - Checks each session's process status
+  - Deletes files from dead processes only
+  - Shows summary of actions taken
 
 TEMP DIRECTORY:
   {{TEMP_DIR}}
@@ -17,26 +22,20 @@ TEMP DIRECTORY:
 EXAMPLE:
   $ {{BIN_NAME}} --cleanup-logs
   Found active session on port 15702 (PID: 12345)
-  Preserving active session info: {{BIN_NAME}}_session_port_15702.json
-  Preserving active log file: {{BIN_NAME}}_session_1705314523456.log
-  Removed inactive log file: {{BIN_NAME}}_session_1705314567890.log
-  Removed inactive session info: {{BIN_NAME}}_session_port_15703.json
+  Preserving active session files: 2
+  Removed inactive session files: 3
   
-  Cleanup complete:
-    - 2 inactive files removed
-    - 2 active session files preserved
+  Cleanup complete.
 
-FILES CLEANED:
-  - {{BIN_NAME}}_session_*.log (session output logs from dead processes)
-  - {{BIN_NAME}}_session_port_*.json (session metadata from dead processes)
+FILES MANAGED:
+  - {{BIN_NAME}}_session_*.log
+  - {{BIN_NAME}}_session_port_*.json
 
 NOTES:
-  - Deletion behavior varies by platform:
-    • macOS/Linux: Open files can be deleted (space freed when closed)
-    • Windows: Files in use are locked and deletion will fail
-  - Error messages show which files couldn't be removed
+  - Platform differences:
+    • macOS/Linux: Can delete open files
+    • Windows: Locked files fail to delete
+  - OS auto-cleanup varies (3-10 days)
 
-AUTOMATIC OS CLEANUP:
-  - macOS: Removes files older than 3 days
-  - Linux: Removes files older than 10 days (systemd default)
-  - Windows: No automatic cleanup unless Storage Sense is enabled
+See also:
+  --detached, --info

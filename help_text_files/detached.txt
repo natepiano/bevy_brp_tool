@@ -1,37 +1,33 @@
+========================================
+OPTION: --detached (-d)
+========================================
 Start app in detached mode (persistent session with temp log file)
 
-This mode is particularly useful for coding agents that need to start
-the app once and then continue to issue direct commands against the
-detached app without restarts.
+USAGE:
+  {{BIN_NAME}} -d                      # Auto-detect app
+  {{BIN_NAME}} --detached --app ./game # Specific app
+  {{BIN_NAME}} list                    # Issue commands to session
+  {{BIN_NAME}} shutdown                # Stop session
+
+DESCRIPTION:
+Starts app as background process that persists after {{BIN_NAME}} exits.
+Perfect for issuing multiple commands without restarts.
 
 BEHAVIOR:
-  - Starts the app as a background process
-  - App persists after {{BIN_NAME}} command exits
-  - Output redirected to temporary log file
+  - App runs in background
+  - Output goes to temp log file
   - Session survives terminal closure
-  - Log files stored in: {{TEMP_DIR}}
 
-USAGE:
-  {{BIN_NAME}} -d                      # Start with auto-detected app (short form)
-  {{BIN_NAME}} --detached              # Start with auto-detected app
-  {{BIN_NAME}} -d --app ./game         # Start specific app with short form
-  {{BIN_NAME}} --detached --app ./game # Start specific app
-  {{BIN_NAME}} --info                  # Check session status
-  {{BIN_NAME}} list                    # Issue direct mode commands to detached session
-  {{BIN_NAME}} shutdown                # Stop detached session
-
-APP DETECTION:
-  When --app is not specified, {{BIN_NAME}} will auto-detect and use:
-Use '{{BIN_NAME}} --detect' to see what app would be detected.
-
-COMPARISON WITH OTHER MODES:
-  direct:            {{BIN_NAME}} list                     (connect to running app)
-  managed-commands:  {{BIN_NAME}} -m list                  (start, run, exit)
-  detached:          {{BIN_NAME}} -d; {{BIN_NAME}} list    (start persistent, run commands)
-
-  Direct mode does not distinguish between an app you started or one started with --detached.
+WORKFLOW:
+  {{BIN_NAME}} -d          # Start session
+  {{BIN_NAME}} ready       # Check if ready
+  {{BIN_NAME}} list        # Run commands
+  {{BIN_NAME}} shutdown    # Stop when done
 
 NOTES:
-  - Cannot be used with -m/--managed-commands
-  - Cannot accept commands on same invocation
-  - Use -c/--cleanup-logs to remove old log files
+  - Cannot combine with --managed-commands
+  - Use --info to check session status
+  - Log files in: {{TEMP_DIR}}
+
+See also:
+  --managed-commands, --agent, --info, --cleanup-logs
